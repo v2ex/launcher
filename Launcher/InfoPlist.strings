@@ -1,0 +1,12 @@
+/* 
+  InfoPlist.strings
+  launcher
+
+  Created by Kai on 11/18/21.
+  
+*/
+
+
+"CFBundleDisplayName" = "CodeLauncher";
+"CFBundleName" = "CodeLauncher";
+"NSHumanReadableCopyright" = "© 2022 V2EX. All rights reserved.";

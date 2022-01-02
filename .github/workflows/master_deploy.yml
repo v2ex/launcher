@@ -1,0 +1,86 @@
+name: master_deploy
+
+on:
+  push:
+    tags: [ release* ]
+
+jobs:
+  master_deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout Project
+        uses: actions/checkout@v2
+
+      - name: Set env
+        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+
+      - name: Replace Team ID
+        run: |
+          tmp=$(sed 's/DEVELOPMENT_TEAM = [a-zA-Z0-9]*/DEVELOPMENT_TEAM = ${{ secrets.TEAM_ID }}/g' Launcher.xcodeproj/project.pbxproj); echo -n "$tmp" > Launcher.xcodeproj/project.pbxproj
+
+      - name: Import Certificates
+        uses: devbotsxyz/import-signing-certificate@main
+        with:
+          certificate-data: ${{ secrets.SIGNING_CERTIFICATE_P12_DATA }}
+          certificate-passphrase: ${{ secrets.SIGNING_CERTIFICATE_PASSWORD }}
+          keychain-password: ${{ secrets.KEYCHAIN_PASSWORD }}
+
+      - name: Archive
+        uses: devbotsxyz/xcode-archive@v1
+
+      - name: Export & Sign Release Build
+        uses: devbotsxyz/xcode-export-archive@master
+
+      - name: Notarize Release Build
+        uses: devbotsxyz/xcode-notarize@v1
+        with:
+          product-path: Export/CodeLauncher.app
+          appstore-connect-username: ${{ secrets.NOTARIZE_USERNAME }}
+          appstore-connect-password: ${{ secrets.NOTARIZE_PASSWORD }}
+
+      - name: Staple Release Build
+        uses: devbotsxyz/xcode-staple@v1
+        with:
+          product-path: Export/CodeLauncher.app
+
+      - name: Package for Distribution
+        run: ditto -V -c -k --keepParent "Export/CodeLauncher.app" "CodeLauncher.zip"
+
+      - name: Release app
+        uses: softprops/action-gh-release@v1
+        with:
+          files: CodeLauncher.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload to DigitalOcean Spaces
+        uses: BetaHuhn/do-spaces-action@v2
+        with:
+          access_key: ${{ secrets.DO_ACCESS_KEY }}
+          secret_key: ${{ secrets.DO_SECRET_KEY }}
+          space_name: ${{ secrets.DO_SPACE_NAME }}
+          space_region: ${{ secrets.DO_SPACE_REGION }}
+          source: CodeLauncher.zip
+          out_dir: codelauncher/${{ env.RELEASE_VERSION }}
+
+      - name: Prepare Sparkle Appcast
+        run: |
+          "${{ secrets.SELF_HOSTED_SPARKLE_BIN_PATH }}" -f "${{ secrets.SELF_HOSTED_SPARKLE_KEY_PATH }}" > /dev/null & \
+          mkdir -p Release & cp CodeLauncher.zip Release/ & \
+          security unlock-keychain -p ${{ secrets.KEYCHAIN_PASSWORD }} ~/Library/Keychains/devbotsxyz-xcode-certificates-kailuo/launcher-db & \
+          "${{ secrets.SELF_HOSTED_SPARKLE_GENERATE_APPCAST_PATH }}" --download-url-prefix "https://opensource.v2ex.pro/codelauncher/${{ env.RELEASE_VERSION }}/CodeLauncher.zip" Release > /dev/null
+
+      - name: Upload Sparkle Appcast
+        uses: BetaHuhn/do-spaces-action@v2
+        with:
+          access_key: ${{ secrets.DO_ACCESS_KEY }}
+          secret_key: ${{ secrets.DO_SECRET_KEY }}
+          space_name: ${{ secrets.DO_SPACE_NAME }}
+          space_region: ${{ secrets.DO_SPACE_REGION }}
+          source: Release/appcast.xml
+          out_dir: codelauncher
+
+      - name: Restore to Default Keychain
+        run: |
+          security default-keychain -s login.keychain
