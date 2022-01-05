@@ -25,50 +25,50 @@ extension String {
     static let taskCompleteActionDismissIdentifier: String = "codelauncher.v2ex.task.dismiss"
     static let taskCompleteActionRepeatIdentifier: String = "codelauncher.v2ex.task.repeat"
 
+    enum ArgumentParsingState {
+        case normal
+        case singleQuoteStarted
+        case doubleQuoteStarted
+    }
+
     func stringToArguments() -> [String] {
         var str = self
         str = str.trimmingCharacters(in: .whitespacesAndNewlines)
         var arguments: [String] = []
-        var currentState = "normal"
+        var currentState = ArgumentParsingState.normal
         var part: String = ""
         var lastChar: String = ""
         for char in str {
             switch char {
             case " ":
                 switch currentState {
-                case "normal":
+                case .normal:
                     if lastChar != " " {
                         arguments.append(part)
                         part = ""
                     }
-                case "doubleQuoteStarted":
+                case .doubleQuoteStarted:
                     part = part + String(char)
-                case "singleQuoteStarted":
+                case .singleQuoteStarted:
                     part = part + String(char)
-                default:
-                    break
                 }
             case "'":
                 switch currentState {
-                case "normal":
-                    currentState = "singleQuoteStarted"
-                case "singleQuoteStarted":
-                    currentState = "normal"
-                case "doubleQuoteStarted":
+                case .normal:
+                    currentState = .singleQuoteStarted
+                case .singleQuoteStarted:
+                    currentState = .normal
+                case .doubleQuoteStarted:
                     part = part + String(char)
-                default:
-                    break
                 }
             case "\"":
                 switch currentState {
-                case "normal":
-                    currentState = "doubleQuoteStarted"
-                case "doubleQuoteStarted":
-                    currentState = "normal"
-                case "singleQuoteStarted":
+                case .normal:
+                    currentState = .doubleQuoteStarted
+                case .doubleQuoteStarted:
+                    currentState = .normal
+                case .singleQuoteStarted:
                     part = part + String(char)
-                default:
-                    break
                 }
             default:
                 part = part + String(char)
