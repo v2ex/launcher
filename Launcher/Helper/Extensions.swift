@@ -25,6 +25,62 @@ extension String {
     static let taskCompleteActionDismissIdentifier: String = "codelauncher.v2ex.task.dismiss"
     static let taskCompleteActionRepeatIdentifier: String = "codelauncher.v2ex.task.repeat"
 
+    func stringToArguments() -> [String] {
+        var str = self
+        str = str.trimmingCharacters(in: .whitespacesAndNewlines)
+        var arguments: [String] = []
+        var currentState = "normal"
+        var part: String = ""
+        var lastChar: String = ""
+        for char in str {
+            switch char {
+            case " ":
+                switch currentState {
+                case "normal":
+                    if lastChar != " " {
+                        arguments.append(part)
+                        part = ""
+                    }
+                case "doubleQuoteStarted":
+                    part = part + String(char)
+                case "singleQuoteStarted":
+                    part = part + String(char)
+                default:
+                    break
+                }
+            case "'":
+                switch currentState {
+                case "normal":
+                    currentState = "singleQuoteStarted"
+                case "singleQuoteStarted":
+                    currentState = "normal"
+                case "doubleQuoteStarted":
+                    part = part + String(char)
+                default:
+                    break
+                }
+            case "\"":
+                switch currentState {
+                case "normal":
+                    currentState = "doubleQuoteStarted"
+                case "doubleQuoteStarted":
+                    currentState = "normal"
+                case "singleQuoteStarted":
+                    part = part + String(char)
+                default:
+                    break
+                }
+            default:
+                part = part + String(char)
+            }
+            lastChar = String(char)
+        }
+        if part.count > 0 {
+            arguments.append(part)
+        }
+        return arguments
+    }
+
     func processedArguments() -> [String] {
         var output: [String] = []
         var s = self

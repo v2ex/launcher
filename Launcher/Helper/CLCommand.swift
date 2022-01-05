@@ -12,7 +12,7 @@ import Foundation
  *  Run commands async
  *
  *  - parameter command: The command with launch path, config path and arguments
- *  - parameter process: The process to use to proform the command. default: New one every command
+ *  - parameter process: The process to use to perform the command. default: New one every command
  *  - returns: complete block with task status, optional output (standard output + error output)
  *
  */

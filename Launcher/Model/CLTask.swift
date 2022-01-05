@@ -81,7 +81,7 @@ struct CLTask: Codable, Hashable, Identifiable {
             debugPrint("Invalid task: \(self)")
             return complete(nil, false, "Invalid task, abort.")
         }
-        let cmd = CLCommand(executable: url, directory: dir, arguments: arguments.processedArguments(), environments: environments.processedEnvironments(), delay: delay)
+        let cmd = CLCommand(executable: url, directory: dir, arguments: arguments.stringToArguments(), environments: environments.processedEnvironments(), delay: delay)
         runAsyncCommand(command: cmd) { process, completed, output in
             complete(process, completed, output)
         }
