@@ -250,7 +250,7 @@ class CLTaskManager: NSObject {
         guard CLStore.shared.taskProcesses[task.id.uuidString] == nil else { return }
         task.launchTask { process, completed, output in
             if completed {
-                debugPrint("CLTaskManager.startTask: task \(task.id.uuidString) completed.")
+                debugPrint("CLTaskManager.startTask: task \(task.executable) completed.")
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                     CLStore.shared.taskProcesses.removeValue(forKey: task.id.uuidString)
                 }
@@ -263,7 +263,7 @@ class CLTaskManager: NSObject {
                 }
                 self.sendNotification(forTask: task, started: false)
             } else {
-                debugPrint("CLTaskManager.startTask: task \(task.id.uuidString) started.")
+                debugPrint("CLTaskManager.startTask: task \(task.executable) started.")
                 if let o = output, o != "" {
                     var processedOutputs: [String] = []
                     if (o as NSString).range(of: "\n", options: .caseInsensitive).location != NSNotFound {
