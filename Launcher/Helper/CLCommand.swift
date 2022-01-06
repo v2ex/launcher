@@ -79,7 +79,7 @@ private extension Process {
         let processQueue = DispatchQueue(label: "com.v2ex.codelauncher.async-command-output-queue")
         
         var outputData = Data()
-//        var errorData = Data()
+        var errorData = Data()
 
         let outputPipe = Pipe()
         standardOutput = outputPipe
@@ -89,7 +89,8 @@ private extension Process {
 
         outputPipe.fileHandleForReading.readabilityHandler = { handler in
             let data = handler.availableData
-            guard handler.availableData.count > 0 else {
+            guard data.count > 0 else {
+                try? handler.close()
                 return
             }
             outputData.append(data)
@@ -100,18 +101,19 @@ private extension Process {
             }
         }
 
-//        errorPipe.fileHandleForReading.readabilityHandler = { handler in
-//            let data = handler.availableData
-//            guard data.count > 0 else {
-//                return
-//            }
-//            errorData.append(data)
-//            processQueue.async {
-//                if let output = data.stringOutput(), output != "" {
-//                    complete(self, false, output)
-//                }
-//            }
-//        }
+        errorPipe.fileHandleForReading.readabilityHandler = { handler in
+            let data = handler.availableData
+            guard data.count > 0 else {
+                try? handler.close()
+                return
+            }
+            errorData.append(data)
+            processQueue.async {
+                if let output = data.stringOutput(), output != "" {
+                    complete(self, false, output)
+                }
+            }
+        }
 
         launch()
 
