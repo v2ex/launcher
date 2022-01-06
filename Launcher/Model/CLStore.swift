@@ -147,6 +147,21 @@ class CLStore: ObservableObject {
         }
     }
 
+    subscript(projectID: CLProject.ID?) -> CLProject {
+        get {
+            if let id = projectID {
+                return projects.first(where: { $0.id == id }) ?? .placeholder
+            }
+            return .placeholder
+        }
+
+        set(newValue) {
+            if let id = projectID {
+                projects[projects.firstIndex(where: { $0.id == id })!] = newValue
+            }
+        }
+    }
+
     func loadProject(byID id: UUID) -> CLProject? {
         projects.filter { t in
             t.id == id

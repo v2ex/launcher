@@ -251,6 +251,12 @@ class CLTaskManager: NSObject {
         task.launchTask { process, completed, output in
             if completed {
                 debugPrint("CLTaskManager.startTask: task \(task.executable) completed.")
+                if let p = process {
+                    DispatchQueue.main.sync {
+                        CLStore.shared[task.projectID][task.id].lastExitCode = p.terminationStatus
+                    }
+                    debugPrint("Task \(task.executable) termination status: \(p.terminationStatus)")
+                }
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                     CLStore.shared.taskProcesses.removeValue(forKey: task.id.uuidString)
                 }

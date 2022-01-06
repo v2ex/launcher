@@ -8,6 +8,29 @@
 import Darwin
 import SwiftUI
 
+struct CLTaskStatusIndicatorView: View {
+    var status: CLTaskStatus = CLTaskStatus.stopped
+
+    var body: some View {
+        VStack {
+            switch status {
+                case .running:
+                    Circle()
+                .frame(width: 11, height: 11, alignment: .center)
+                .foregroundColor(Color.green)
+                case .failed:
+                    Circle()
+                .frame(width: 11, height: 11, alignment: .center)
+                .foregroundColor(Color.red)
+                case .stopped:
+                    Circle()
+                .frame(width: 11, height: 11, alignment: .center)
+                .foregroundColor(Color.gray)
+            }
+        }
+    }
+}
+
 struct CLTaskItemView: View {
     @EnvironmentObject private var store: CLStore
     @Environment(\.openURL) var openURL
@@ -18,8 +41,8 @@ struct CLTaskItemView: View {
         VStack {
             HStack {
                 VStack {
-                    PlanetPartsOnlineStatusView(isOnline: taskIsRunning(task: task))
-                        .padding(.top, 3)
+                    CLTaskStatusIndicatorView(status: task.status).padding(.top, 3)
+
                     Spacer()
                 }
 

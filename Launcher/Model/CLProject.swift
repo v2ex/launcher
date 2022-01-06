@@ -16,6 +16,22 @@ struct CLProject: Codable, Hashable, Identifiable {
     var tasks: [CLTask]
     var autoStart: Bool
 
+    init(
+        id: UUID,
+        created: Date,
+        name: String,
+        description: String,
+        tasks: [CLTask],
+        autoStart: Bool
+    ) {
+        self.id = id
+        self.created = created
+        self.name = name
+        self.description = description
+        self.tasks = tasks
+        self.autoStart = autoStart
+    }
+
     func generateAvatarName() -> String {
         if name.contains(" ") {
             let initials: [String] = name.components(separatedBy: " ").map { n in
@@ -48,5 +64,26 @@ struct CLProject: Codable, Hashable, Identifiable {
         debugPrint("a: \(a) count: \(gs.count) c: \(c)")
         let g = gs[c]
         return g
+    }
+
+    subscript(taskID: CLTask.ID?) -> CLTask {
+        get {
+            if let id = taskID {
+                return tasks.first(where: { $0.id == id }) ?? .placeholder
+            }
+            return .placeholder
+        }
+
+        set(newValue) {
+            if let id = taskID {
+                tasks[tasks.firstIndex(where: { $0.id == id })!] = newValue
+            }
+        }
+    }
+}
+
+extension CLProject {
+    static var placeholder: Self {
+        CLProject(id: UUID(), created: Date(), name: "Untitled Project", description: "", tasks: [], autoStart: false)
     }
 }
