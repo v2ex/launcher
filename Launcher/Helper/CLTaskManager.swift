@@ -248,51 +248,51 @@ class CLTaskManager: NSObject {
 
     func startTask(task: CLTask) {
         guard CLStore.shared.taskProcesses[task.id.uuidString] == nil else { return }
-        DispatchQueue.global(qos: .utility).async {
-            task.launchTask { process, completed, output in
-                if completed {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        CLStore.shared.taskProcesses.removeValue(forKey: task.id.uuidString)
+        task.launchTask { process, completed, output in
+            if completed {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    CLStore.shared.taskProcesses.removeValue(forKey: task.id.uuidString)
+                }
+                if let p = process {
+                    if p.isRunning == false, p.terminationStatus != 0 {
+                        self.sendNotification(forTask: task, started: false, failed: true)
+                        self.restartFailedTask(task: task)
+                        return
+                    }
+                }
+                self.sendNotification(forTask: task, started: false)
+            } else {
+                if let o = output, o != "" {
+                    var processedOutputs: [String] = []
+                    if (o as NSString).range(of: "\n", options: .caseInsensitive).location != NSNotFound {
+                        for processedString in o.components(separatedBy: "\n") {
+                            processedOutputs.append(processedString)
+                        }
+                    } else {
+                        processedOutputs.append(o)
                     }
 
-                    if let p = process {
-                        if p.isRunning == false, p.terminationStatus != 0 {
-                            self.sendNotification(forTask: task, started: false, failed: true)
-                            self.restartFailedTask(task: task)
-                            return
+                    for processedOutput in processedOutputs {
+                        let taskOutput = CLTaskOutput(id: UUID(), taskID: task.id, projectID: task.projectID, content: processedOutput)
+                        DispatchQueue.main.async {
+                            CLStore.shared.projectOutputs.append(taskOutput)
                         }
                     }
-
-                    self.sendNotification(forTask: task, started: false)
-                } else {
-                    DispatchQueue.global(qos: .background).async {
-                        if let o = output, o != "" {
-                            var processedOutputs: [String] = []
-                            if (o as NSString).range(of: "\n", options: .caseInsensitive).location != NSNotFound {
-                                for processedString in o.components(separatedBy: "\n") {
-                                    processedOutputs.append(processedString)
-                                }
-                            } else {
-                                processedOutputs.append(o)
-                            }
-
-                            for processedOutput in processedOutputs {
-                                let taskOutput = CLTaskOutput(id: UUID(), taskID: task.id, projectID: task.projectID, content: processedOutput)
-                                DispatchQueue.main.async {
-                                    CLStore.shared.projectOutputs.append(taskOutput)
-                                }
-                            }
-                        }
-                    }
-
+                    
                     DispatchQueue.main.async {
                         if CLStore.shared.taskProcesses[task.id.uuidString] == nil {
                             CLStore.shared.taskProcesses[task.id.uuidString] = process
+                            self.sendNotification(forTask: task, started: true)
                         }
                     }
-
-                    if CLStore.shared.taskProcesses[task.id.uuidString] == nil {
-                        self.sendNotification(forTask: task, started: true)
+                } else if output == nil {
+                    DispatchQueue.global(qos: .utility).async {
+                        DispatchQueue.main.async {
+                            if CLStore.shared.taskProcesses[task.id.uuidString] == nil {
+                                CLStore.shared.taskProcesses[task.id.uuidString] = process
+                                self.sendNotification(forTask: task, started: true)
+                            }
+                        }
                     }
                 }
             }

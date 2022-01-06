@@ -17,7 +17,6 @@ import Foundation
  *
  */
 func runAsyncCommand(command: CLCommand, process: Process = .init(), complete: @escaping (Process, Bool, String?) -> Void) {
-    debugPrint("running async command: \(command)")
 
     let argus: [String] = command.arguments.map { s in
         s.processedCommandArgument()
@@ -77,10 +76,8 @@ private extension Process {
 
         environment = theEnvironment
 
-        debugPrint("launching async command at executable: \(executableURL), directory: \(currentDirectoryURL), arguments: \(arguments), environment: \(environment).")
-
         let processQueue = DispatchQueue(label: "com.v2ex.codelauncher.async-command-output-queue")
-
+        
         var outputData = Data()
         var errorData = Data()
 
@@ -92,17 +89,27 @@ private extension Process {
 
         outputPipe.fileHandleForReading.readabilityHandler = { handler in
             let data = handler.availableData
+            guard handler.availableData.count > 0 else {
+                return complete(self, false, nil)
+            }
+            outputData.append(data)
             processQueue.async {
-                outputData.append(data)
-                complete(self, false, data.stringOutput())
+                if let output = data.stringOutput(), output != "" {
+                    complete(self, false, output)
+                }
             }
         }
 
         errorPipe.fileHandleForReading.readabilityHandler = { handler in
             let data = handler.availableData
+            guard data.count > 0 else {
+                return complete(self, false, nil)
+            }
+            errorData.append(data)
             processQueue.async {
-                errorData.append(data)
-                complete(self, false, data.stringOutput())
+                if let output = data.stringOutput(), output != "" {
+                    complete(self, false, output)
+                }
             }
         }
 
@@ -112,13 +119,13 @@ private extension Process {
 
         outputPipe.fileHandleForReading.readabilityHandler = nil
         errorPipe.fileHandleForReading.readabilityHandler = nil
-
-        if outputData.stringOutput() != "" {
-            complete(self, true, outputData.stringOutput())
-        } else if errorData.stringOutput() != "" {
-            complete(self, true, errorData.stringOutput())
+                
+        if let output = outputData.stringOutput(), output != "" {
+            complete(self, true, output)
+        } else if let output = errorData.stringOutput(), output != "" {
+            complete(self, true, output)
         } else {
-            complete(self, true, "")
+            complete(self, true, nil)
         }
     }
 }
