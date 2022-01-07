@@ -7,6 +7,12 @@
 
 import Foundation
 
+enum CLTaskStatus {
+    case running
+    case failed
+    case stopped
+}
+
 struct CLTask: Codable, Hashable, Identifiable {
     let id: UUID
     let projectID: UUID
@@ -17,6 +23,7 @@ struct CLTask: Codable, Hashable, Identifiable {
     var environments: String
     var delay: Double
     var autoStart: Bool
+    var lastExitCode: Int32? = 0
 
     init(id: UUID, projectID: UUID, created: Date, executable: String, directory: String, arguments: String, environments: String = "", delay: Double, autoStart: Bool = false) {
         self.id = id
@@ -28,6 +35,7 @@ struct CLTask: Codable, Hashable, Identifiable {
         self.environments = environments
         self.delay = delay
         self.autoStart = autoStart
+        self.lastExitCode = 0
     }
 
     var hasServicePort: Bool {
@@ -35,6 +43,23 @@ struct CLTask: Codable, Hashable, Identifiable {
             return true
         } else {
             return false
+        }
+    }
+
+    var isRunning: Bool {
+        if CLStore.shared.taskProcesses[id.uuidString] == nil {
+            return false
+        }
+        return true
+    }
+
+    var status: CLTaskStatus {
+        if self.isRunning {
+            return .running
+        } else if self.lastExitCode != 0 {
+            return .failed
+        } else {
+            return .stopped
         }
     }
 
@@ -81,7 +106,7 @@ struct CLTask: Codable, Hashable, Identifiable {
             debugPrint("Invalid task: \(self)")
             return complete(nil, false, "Invalid task, abort.")
         }
-        let cmd = CLCommand(executable: url, directory: dir, arguments: arguments.processedArguments(), environments: environments.processedEnvironments(), delay: delay)
+        let cmd = CLCommand(executable: url, directory: dir, arguments: arguments.stringToArguments(), environments: environments.processedEnvironments(), delay: delay)
         runAsyncCommand(command: cmd) { process, completed, output in
             complete(process, completed, output)
         }
@@ -150,4 +175,11 @@ struct CLTaskOutput: Hashable {
     let taskID: UUID
     let projectID: UUID
     let content: String
+}
+
+
+extension CLTask {
+    static var placeholder: Self {
+        CLTask(id: UUID(), projectID: UUID(), created: Date(), executable: "", directory: "", arguments: "", environments: "", delay: 0, autoStart: false)
+    }
 }

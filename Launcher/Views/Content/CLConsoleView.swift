@@ -1,6 +1,6 @@
 //
 //  CLConsoleView.swift
-//  Code Launcher
+//  CodeLauncher
 //
 //  Created by Kai on 11/24/21.
 //

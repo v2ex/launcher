@@ -8,6 +8,7 @@
 import Darwin
 import SwiftUI
 
+
 struct CLTaskItemView: View {
     @EnvironmentObject private var store: CLStore
     @Environment(\.openURL) var openURL
@@ -18,8 +19,8 @@ struct CLTaskItemView: View {
         VStack {
             HStack {
                 VStack {
-                    PlanetPartsOnlineStatusView(isOnline: taskIsRunning(task: task))
-                        .padding(.top, 3)
+                    CLTaskStatusIndicatorView(status: task.status).padding(.top, 3)
+
                     Spacer()
                 }
 

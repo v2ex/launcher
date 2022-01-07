@@ -46,7 +46,7 @@ struct CLSidebarView: View {
                                 if store.activeProjects.filter { projectID in
                                     projectID == p.id.uuidString
                                 }.count > 0 {
-                                    PlanetPartsOnlineStatusView(isOnline: true)
+                                    CLTaskStatusIndicatorView(status: .running)
                                 }
                                 if p.tasks.count > 1 {
                                     Text(String(p.tasks.count))

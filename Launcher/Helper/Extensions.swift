@@ -1,6 +1,6 @@
 //
 //  Extensions.swift
-//  Code Launcher
+//  CodeLauncher
 //
 //  Created by Kai on 11/19/21.
 //
@@ -24,6 +24,62 @@ extension String {
     static let taskCompleteIdentifier: String = "codelauncher.v2ex.task.complete"
     static let taskCompleteActionDismissIdentifier: String = "codelauncher.v2ex.task.dismiss"
     static let taskCompleteActionRepeatIdentifier: String = "codelauncher.v2ex.task.repeat"
+
+    enum ArgumentParsingState {
+        case normal
+        case singleQuoteStarted
+        case doubleQuoteStarted
+    }
+
+    func stringToArguments() -> [String] {
+        var str = self
+        str = str.trimmingCharacters(in: .whitespacesAndNewlines)
+        var arguments: [String] = []
+        var currentState = ArgumentParsingState.normal
+        var part: String = ""
+        var lastChar: String = ""
+        for char in str {
+            switch char {
+            case " ":
+                switch currentState {
+                case .normal:
+                    if lastChar != " " {
+                        arguments.append(part)
+                        part = ""
+                    }
+                case .doubleQuoteStarted:
+                    part = part + String(char)
+                case .singleQuoteStarted:
+                    part = part + String(char)
+                }
+            case "'":
+                switch currentState {
+                case .normal:
+                    currentState = .singleQuoteStarted
+                case .singleQuoteStarted:
+                    currentState = .normal
+                case .doubleQuoteStarted:
+                    part = part + String(char)
+                }
+            case "\"":
+                switch currentState {
+                case .normal:
+                    currentState = .doubleQuoteStarted
+                case .doubleQuoteStarted:
+                    currentState = .normal
+                case .singleQuoteStarted:
+                    part = part + String(char)
+                }
+            default:
+                part = part + String(char)
+            }
+            lastChar = String(char)
+        }
+        if part.count > 0 {
+            arguments.append(part)
+        }
+        return arguments
+    }
 
     func processedArguments() -> [String] {
         var output: [String] = []
