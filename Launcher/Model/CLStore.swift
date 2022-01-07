@@ -169,15 +169,23 @@ class CLStore: ObservableObject {
     }
 
     func saveProject(project: CLProject) {
+        if self[project.id].tasks.count != project.tasks.count {
+            DispatchQueue.main.async {
+                self.selectedTaskIndex = -1
+            }
+        }
+
         projects = projects.map { p in
             if p.id == project.id {
                 return project
             }
             return p
         }
+
         DispatchQueue.global(qos: .background).async {
             self._saveTasks()
         }
+
         if let img = CLTaskManager.shared.projectAvatar(projectID: editingProject.id, isEditing: true) {
             CLTaskManager.shared.updateProjectAvatar(image: img)
             CLTaskManager.shared.removeProjectAvatar(projectID: editingProject.id, isEditing: true)
