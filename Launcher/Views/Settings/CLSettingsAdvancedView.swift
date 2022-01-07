@@ -14,15 +14,22 @@ struct CLSettingsAdvancedView: View {
 
     var body: some View {
         VStack(spacing: 20) {
-            Spacer()
-
             HStack {
-                Text("Database Option")
+                VStack {
+                    Text("Database Option")
+                    Spacer()
+                }
+                
                 Spacer()
-                Button {
-                    isResettingDatabase = true
-                } label: {
-                    Text("Reset Database")
+                
+                VStack {
+                    Button {
+                        isResettingDatabase = true
+                    } label: {
+                        Text("Reset Database")
+                    }
+                    
+                    Spacer()
                 }
             }
 
