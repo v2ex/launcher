@@ -1,6 +1,6 @@
 //
 //  ViewController.swift
-//  Code Launcher Helper
+//  CodeLauncher Helper
 //
 //  Created by Kai on 12/1/21.
 //

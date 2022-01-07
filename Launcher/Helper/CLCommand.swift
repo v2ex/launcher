@@ -1,6 +1,6 @@
 //
 //  CLCommand.swift
-//  Code Launcher
+//  CodeLauncher
 //
 //  Created by Kai on 11/20/21.
 //

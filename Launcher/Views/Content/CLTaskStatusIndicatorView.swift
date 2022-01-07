@@ -2,7 +2,7 @@
 //  CLTaskStatusIndicatorView.swift
 //  CodeLauncher
 //
-//  Created by Kai Luo on 1/7/22.
+//  Created by Kai on 1/7/22.
 //
 
 import SwiftUI
