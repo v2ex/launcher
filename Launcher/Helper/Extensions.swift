@@ -13,6 +13,7 @@ extension String {
     static let settingsLaunchOptionKey = "CLUserDefaultsLaunchOptionKey"
     static let settingsUseNotificationForTaskStatusKey = "CLUserDefaultsUseNotificationForTaskStatusKey"
     static let settingsAutoRestartFailedTaskKey = "CLUserDefaultsAutoRestartFailedTaskKey"
+    static let settingsAppearanceKey = "CLUserDefaultsAppearanceKey"
 
     static let lastActiveProjectUUIDKey = "CLUserDefaultsLastActiveProjectUUIDKey"
     static let lastSelectedTaskIndexKey = "CLUserDefaultsLastSelectedTaskIndexKey"
