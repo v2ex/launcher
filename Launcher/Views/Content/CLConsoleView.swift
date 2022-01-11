@@ -8,6 +8,10 @@
 import Foundation
 import SwiftUI
 
+// TODO: Functions for Color
+// Here we need more functions to return Color based on the setting value of Appearance
+// Four possibilities: dark, light, device, reverse
+
 private func outputsForegroundColor(index: Int = 0) -> Color {
     index % 2 == 0 ? Color("ConsoleOutputsForegroundIndexed") : Color("ConsoleOutputsForeground")
 }
