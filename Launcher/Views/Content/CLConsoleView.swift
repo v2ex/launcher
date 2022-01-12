@@ -39,79 +39,11 @@ struct CLColor {
     static let lightBackgroundAlternate = Color(hex: 0xEBE8D6)
     static let lightForeground = Color(hex: 0x5C6C74)
     static let lightForegroundAlternate = Color(hex: 0x5B6C73)
-}
 
-private func outputsForegroundColor(index: Int = 0) -> Color {
-    var appearance: Appearance
-    if let rawValue = UserDefaults.standard.string(forKey: String.settingsAppearanceKey) {
-        appearance = Appearance(rawValue: rawValue) ?? .dark
-    } else {
-        appearance = Appearance.dark
-    }
-    switch appearance {
-    case .dark:
-        if index % 2 == 0 {
-            return CLColor.darkForeground
-        } else {
-            return CLColor.darkForegroundAlternate
-        }
-    case .light:
-        if index % 2 == 0 {
-            return CLColor.lightForeground
-        } else {
-            return CLColor.lightForegroundAlternate
-        }
-    case .device:
-        if index % 2 == 0 {
-            return CLColor.lightForeground
-        } else {
-            return CLColor.lightForegroundAlternate
-        }
-    case .reverse:
-        if index % 2 == 0 {
-            return CLColor.lightForeground
-        } else {
-            return CLColor.lightForegroundAlternate
-        }
-    }
-
-    // index % 2 == 0 ? Color("ConsoleOutputsForegroundIndexed") : Color("ConsoleOutputsForeground")
-}
-
-private func outputsBackgroundColor(index: Int = 0) -> Color {
-    var appearance: Appearance
-    if let rawValue = UserDefaults.standard.string(forKey: String.settingsAppearanceKey) {
-        appearance = Appearance(rawValue: rawValue) ?? .dark
-    } else {
-        appearance = Appearance.dark
-    }
-    switch (appearance) {
-    case .dark:
-        if index % 2 == 0 {
-            return CLColor.darkBackground
-        } else {
-            return CLColor.darkBackgroundAlternate
-        }
-    case .light:
-        if index % 2 == 0 {
-            return CLColor.lightBackground
-        } else {
-            return CLColor.lightBackgroundAlternate
-        }
-    case .device:
-        if index % 2 == 0 {
-            return CLColor.lightBackground
-        } else {
-            return CLColor.lightBackgroundAlternate
-        }
-    case .reverse:
-        if index % 2 == 0 {
-            return CLColor.lightBackground
-        } else {
-            return CLColor.lightBackgroundAlternate
-        }
-    }
-    // index % 2 == 0 ? Color("ConsoleOutputsBackgroundIndexed") : Color("ConsoleOutputsBackground")
+    static let draculaBackground = Color(hex: 0x282A36)
+    static let draculaBackgroundAlternate = Color(hex: 0x21222c)
+    static let draculaForeground = Color(hex: 0xF8F8F2)
+    static let draculaForegroundAlternate = Color(hex: 0xD8DEE9)
 }
 
 private struct CLTaskIndexedOutput: Hashable, Identifiable {
@@ -120,64 +52,58 @@ private struct CLTaskIndexedOutput: Hashable, Identifiable {
     let output: CLTaskOutput
 }
 
-private struct TaskConsoleOutputTextStyle: ViewModifier {
-    var output: CLTaskIndexedOutput
-
-    func body(content: Content) -> some View {
-        content
-            .font(.system(size: 13, weight: .regular, design: .monospaced))
-            .foregroundColor(outputsForegroundColor(index: output.index))
-    }
-}
-
-@available(macOS 12.0, *)
-private struct TaskConsoleOutputTextSelectionStyle: ViewModifier {
-    var output: CLTaskIndexedOutput
-
-    func body(content: Content) -> some View {
-        content
-            .textSelection(.enabled)
-            .font(.system(size: 13, weight: .regular, design: .monospaced))
-            .foregroundColor(outputsForegroundColor(index: output.index))
-    }
-}
-
 private struct CLTaskIndexedOutputView: View {
     var output: CLTaskIndexedOutput
 
-    @State private var appearanceRawValue: String = UserDefaults.standard.string(forKey: String.settingsAppearanceKey) ?? "dark"
+    @AppStorage(String.settingsAppearanceKey) var appearance: Appearance = .dark
 
-    private var appearance: Appearance {
-        return Appearance(rawValue: appearanceRawValue)  ?? .dark
+    private func backgroundColor(for appearance: Appearance) -> Color {
+        switch (appearance) {
+        case .dark:
+            return output.index % 2 == 0 ? CLColor.darkBackgroundAlternate : CLColor.darkBackground
+        case .light:
+            return output.index % 2 == 0 ? CLColor.lightBackgroundAlternate : CLColor.lightBackground
+        case .dracula:
+            return output.index % 2 == 0 ? CLColor.draculaBackgroundAlternate : CLColor.draculaBackground
+        case .device:
+            return Color.blue
+        case .reverse:
+            return Color.white
+        }
+    }
+
+    private func foregroundColor(for appearance: Appearance) -> Color {
+        switch (appearance) {
+        case .dark:
+            return output.index % 2 == 0 ? CLColor.darkForegroundAlternate : CLColor.darkForeground
+        case .light:
+            return output.index % 2 == 0 ? CLColor.lightForegroundAlternate : CLColor.lightForeground
+        case .dracula:
+            return output.index % 2 == 0 ? CLColor.draculaForegroundAlternate : CLColor.draculaForeground
+        case .device:
+            return Color.white
+        case .reverse:
+            return Color.blue
+        }
     }
 
     var body: some View {
         HStack {
             if #available(macOS 12.0, *) {
                 Text(output.output.content)
-                    .modifier(TaskConsoleOutputTextSelectionStyle(output: output))
+                    .textSelection(.enabled)
+                    .font(.system(size: 13, weight: .regular, design: .monospaced))
+                    .foregroundColor(foregroundColor(for: appearance))
             } else {
                 Text(output.output.content)
-                    .modifier(TaskConsoleOutputTextStyle(output: output))
+                    .font(.system(size: 13, weight: .regular, design: .monospaced))
+                    .foregroundColor(foregroundColor(for: appearance))
             }
             Spacer()
         }
         .padding(.horizontal, 8)
         .id(output.id)
-        .background(outputsBackgroundColor(index: output.index))
-    }
-
-    private var consoleBackgroundColor: Color {
-        switch appearance {
-        case .dark:
-            return CLColor.darkBackground
-        case .light:
-            return CLColor.lightBackground
-        case .device:
-            return Color.blue
-        case .reverse:
-            return Color.green
-        }
+        .background(backgroundColor(for: appearance))
     }
 }
 
@@ -189,7 +115,22 @@ struct CLConsoleView: View {
     @State private var taskID: UUID!
     @State private var lastTaskOutputID: UUID!
 
-    @State private var appearanceRawValue: String = UserDefaults.standard.string(forKey: String.settingsAppearanceKey) ?? "dark"
+    @AppStorage(String.settingsAppearanceKey) var appearance: Appearance = .dark
+
+    private func backgroundColor(for appearance: Appearance) -> Color {
+        switch (appearance) {
+        case .dark:
+            return CLColor.darkBackgroundAlternate
+        case .light:
+            return CLColor.lightBackgroundAlternate
+        case .dracula:
+            return CLColor.draculaBackgroundAlternate
+        case .device:
+            return Color.blue
+        case .reverse:
+            return Color.white
+        }
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -234,7 +175,7 @@ struct CLConsoleView: View {
                     }
                 }
             }
-            .background(outputsBackgroundColor())
+            .background(backgroundColor(for: appearance))
 
             HStack(spacing: 16) {
                 if project.tasks.count > 1 {
@@ -300,10 +241,6 @@ struct CLConsoleView: View {
             .background(Color.secondary.opacity(0.05))
         }
         .padding(0)
-    }
-
-    private var appearance: Appearance {
-        return Appearance(rawValue: appearanceRawValue)  ?? .dark
     }
 
     private func outputsWithIndex(outputs: [CLTaskOutput]) -> [CLTaskIndexedOutput] {

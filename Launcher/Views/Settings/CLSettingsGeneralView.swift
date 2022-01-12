@@ -10,6 +10,7 @@ import SwiftUI
 enum Appearance: String, Codable, CaseIterable, Identifiable {
     case dark
     case light
+    case dracula
     case device
     case reverse
 
@@ -28,6 +29,7 @@ struct CLSettingsGeneralView: View {
                 Picker("Output Appearance", selection: $selectedAppearance) {
                     Text("Dark theme").tag(Appearance.dark)
                     Text("Light theme").tag(Appearance.light)
+                    Text("Dracula theme").tag(Appearance.dracula)
                     Text("Use device theme").tag(Appearance.device)
                     Text("Use device theme (reverse)").tag(Appearance.reverse)
                 }
