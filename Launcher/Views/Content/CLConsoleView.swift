@@ -8,12 +8,42 @@
 import Foundation
 import SwiftUI
 
-private func outputsForegroundColor(index: Int = 0) -> Color {
-    index % 2 == 0 ? Color("ConsoleOutputsForegroundIndexed") : Color("ConsoleOutputsForeground")
-}
+// TODO: Functions for Color
+// Here we need more functions to return Color based on the setting value of Appearance
+// Four possibilities: dark, light, device, reverse
 
-private func outputsBackgroundColor(index: Int = 0) -> Color {
-    index % 2 == 0 ? Color("ConsoleOutputsBackgroundIndexed") : Color("ConsoleOutputsBackground")
+/*
+
+Current color values:
+
+- Dark:
+  - Background: #0D2A35
+  - Background alternate: #153541
+  - Foreground: #9EABAC
+  - Foreground alternate: #AAB4B1
+
+- Light:
+  - Background: #FBF6E6
+  - Background alternate: #EBE8D6
+  - Foreground: #5C6C74
+  - Foreground alternate: #5B6C73
+*/
+
+struct CLColor {
+    static let darkBackground = Color(hex: 0x0D2A35)
+    static let darkBackgroundAlternate = Color(hex: 0x153541)
+    static let darkForeground = Color(hex: 0x9EABAC)
+    static let darkForegroundAlternate = Color(hex: 0xAAB4B1)
+
+    static let lightBackground = Color(hex: 0xFBF6E6)
+    static let lightBackgroundAlternate = Color(hex: 0xEBE8D6)
+    static let lightForeground = Color(hex: 0x5C6C74)
+    static let lightForegroundAlternate = Color(hex: 0x5B6C73)
+
+    static let draculaBackground = Color(hex: 0x282A36)
+    static let draculaBackgroundAlternate = Color(hex: 0x21222c)
+    static let draculaForeground = Color(hex: 0xF8F8F2)
+    static let draculaForegroundAlternate = Color(hex: 0xD8DEE9)
 }
 
 private struct CLTaskIndexedOutput: Hashable, Identifiable {
@@ -22,45 +52,58 @@ private struct CLTaskIndexedOutput: Hashable, Identifiable {
     let output: CLTaskOutput
 }
 
-private struct TaskConsoleOutputTextStyle: ViewModifier {
-    var output: CLTaskIndexedOutput
-
-    func body(content: Content) -> some View {
-        content
-            .font(.system(size: 13, weight: .regular, design: .monospaced))
-            .foregroundColor(outputsForegroundColor(index: output.index))
-    }
-}
-
-@available(macOS 12.0, *)
-private struct TaskConsoleOutputTextSelectionStyle: ViewModifier {
-    var output: CLTaskIndexedOutput
-
-    func body(content: Content) -> some View {
-        content
-            .textSelection(.enabled)
-            .font(.system(size: 13, weight: .regular, design: .monospaced))
-            .foregroundColor(outputsForegroundColor(index: output.index))
-    }
-}
-
 private struct CLTaskIndexedOutputView: View {
     var output: CLTaskIndexedOutput
+
+    @AppStorage(String.settingsAppearanceKey) var appearance: Appearance = .dark
+
+    private func backgroundColor(for appearance: Appearance) -> Color {
+        switch (appearance) {
+        case .dark:
+            return output.index % 2 == 0 ? CLColor.darkBackgroundAlternate : CLColor.darkBackground
+        case .light:
+            return output.index % 2 == 0 ? CLColor.lightBackgroundAlternate : CLColor.lightBackground
+        case .dracula:
+            return output.index % 2 == 0 ? CLColor.draculaBackgroundAlternate : CLColor.draculaBackground
+        case .device:
+            return output.index % 2 == 0 ? Color("ConsoleBackgroundAlternate") : Color("ConsoleBackground")
+        case .reverse:
+            return output.index % 2 == 0 ? Color("ReverseConsoleBackgroundAlternate") : Color("ReverseConsoleBackground")
+        }
+    }
+
+    private func foregroundColor(for appearance: Appearance) -> Color {
+        switch (appearance) {
+        case .dark:
+            return output.index % 2 == 0 ? CLColor.darkForegroundAlternate : CLColor.darkForeground
+        case .light:
+            return output.index % 2 == 0 ? CLColor.lightForegroundAlternate : CLColor.lightForeground
+        case .dracula:
+            return output.index % 2 == 0 ? CLColor.draculaForegroundAlternate : CLColor.draculaForeground
+        case .device:
+            return output.index % 2 == 0 ? Color("ConsoleForegroundAlternate") : Color("ConsoleForeground")
+        case .reverse:
+            return output.index % 2 == 0 ? Color("ReverseConsoleForegroundAlternate") : Color("ReverseConsoleForeground")
+        }
+    }
 
     var body: some View {
         HStack {
             if #available(macOS 12.0, *) {
                 Text(output.output.content)
-                    .modifier(TaskConsoleOutputTextSelectionStyle(output: output))
+                    .textSelection(.enabled)
+                    .font(.system(size: 13, weight: .regular, design: .monospaced))
+                    .foregroundColor(foregroundColor(for: appearance))
             } else {
                 Text(output.output.content)
-                    .modifier(TaskConsoleOutputTextStyle(output: output))
+                    .font(.system(size: 13, weight: .regular, design: .monospaced))
+                    .foregroundColor(foregroundColor(for: appearance))
             }
             Spacer()
         }
         .padding(.horizontal, 8)
         .id(output.id)
-        .background(outputsBackgroundColor(index: output.index))
+        .background(backgroundColor(for: appearance))
     }
 }
 
@@ -71,6 +114,23 @@ struct CLConsoleView: View {
 
     @State private var taskID: UUID!
     @State private var lastTaskOutputID: UUID!
+
+    @AppStorage(String.settingsAppearanceKey) var appearance: Appearance = .dark
+
+    private func backgroundColor(for appearance: Appearance) -> Color {
+        switch (appearance) {
+        case .dark:
+            return CLColor.darkBackgroundAlternate
+        case .light:
+            return CLColor.lightBackgroundAlternate
+        case .dracula:
+            return CLColor.draculaBackgroundAlternate
+        case .device:
+            return Color("ConsoleBackgroundAlternate")
+        case .reverse:
+            return Color("ReverseConsoleBackgroundAlternate")
+        }
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -115,7 +175,7 @@ struct CLConsoleView: View {
                     }
                 }
             }
-            .background(outputsBackgroundColor())
+            .background(backgroundColor(for: appearance))
 
             HStack(spacing: 16) {
                 if project.tasks.count > 1 {
@@ -169,7 +229,7 @@ struct CLConsoleView: View {
                         }
                     }
                 } label: {
-                    Image(systemName: "trash.square")
+                    Image(systemName: "trash")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 14, height: 14, alignment: .center)
