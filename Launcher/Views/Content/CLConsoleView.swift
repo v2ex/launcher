@@ -229,7 +229,7 @@ struct CLConsoleView: View {
                         }
                     }
                 } label: {
-                    Image(systemName: "trash.square")
+                    Image(systemName: "trash")
                         .resizable()
                         .aspectRatio(contentMode: .fit)
                         .frame(width: 14, height: 14, alignment: .center)
