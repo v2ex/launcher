@@ -12,12 +12,106 @@ import SwiftUI
 // Here we need more functions to return Color based on the setting value of Appearance
 // Four possibilities: dark, light, device, reverse
 
+/*
+
+Current color values:
+
+- Dark:
+  - Background: #0D2A35
+  - Background alternate: #153541
+  - Foreground: #9EABAC
+  - Foreground alternate: #AAB4B1
+
+- Light:
+  - Background: #FBF6E6
+  - Background alternate: #EBE8D6
+  - Foreground: #5C6C74
+  - Foreground alternate: #5B6C73
+*/
+
+struct CLColor {
+    static let darkBackground = Color(hex: 0x0D2A35)
+    static let darkBackgroundAlternate = Color(hex: 0x153541)
+    static let darkForeground = Color(hex: 0x9EABAC)
+    static let darkForegroundAlternate = Color(hex: 0xAAB4B1)
+
+    static let lightBackground = Color(hex: 0xFBF6E6)
+    static let lightBackgroundAlternate = Color(hex: 0xEBE8D6)
+    static let lightForeground = Color(hex: 0x5C6C74)
+    static let lightForegroundAlternate = Color(hex: 0x5B6C73)
+}
+
 private func outputsForegroundColor(index: Int = 0) -> Color {
-    index % 2 == 0 ? Color("ConsoleOutputsForegroundIndexed") : Color("ConsoleOutputsForeground")
+    var appearance: Appearance
+    if let rawValue = UserDefaults.standard.string(forKey: String.settingsAppearanceKey) {
+        appearance = Appearance(rawValue: rawValue) ?? .dark
+    } else {
+        appearance = Appearance.dark
+    }
+    switch appearance {
+    case .dark:
+        if index % 2 == 0 {
+            return CLColor.darkForeground
+        } else {
+            return CLColor.darkForegroundAlternate
+        }
+    case .light:
+        if index % 2 == 0 {
+            return CLColor.lightForeground
+        } else {
+            return CLColor.lightForegroundAlternate
+        }
+    case .device:
+        if index % 2 == 0 {
+            return CLColor.lightForeground
+        } else {
+            return CLColor.lightForegroundAlternate
+        }
+    case .reverse:
+        if index % 2 == 0 {
+            return CLColor.lightForeground
+        } else {
+            return CLColor.lightForegroundAlternate
+        }
+    }
+
+    // index % 2 == 0 ? Color("ConsoleOutputsForegroundIndexed") : Color("ConsoleOutputsForeground")
 }
 
 private func outputsBackgroundColor(index: Int = 0) -> Color {
-    index % 2 == 0 ? Color("ConsoleOutputsBackgroundIndexed") : Color("ConsoleOutputsBackground")
+    var appearance: Appearance
+    if let rawValue = UserDefaults.standard.string(forKey: String.settingsAppearanceKey) {
+        appearance = Appearance(rawValue: rawValue) ?? .dark
+    } else {
+        appearance = Appearance.dark
+    }
+    switch (appearance) {
+    case .dark:
+        if index % 2 == 0 {
+            return CLColor.darkBackground
+        } else {
+            return CLColor.darkBackgroundAlternate
+        }
+    case .light:
+        if index % 2 == 0 {
+            return CLColor.lightBackground
+        } else {
+            return CLColor.lightBackgroundAlternate
+        }
+    case .device:
+        if index % 2 == 0 {
+            return CLColor.lightBackground
+        } else {
+            return CLColor.lightBackgroundAlternate
+        }
+    case .reverse:
+        if index % 2 == 0 {
+            return CLColor.lightBackground
+        } else {
+            return CLColor.lightBackgroundAlternate
+        }
+    }
+    // index % 2 == 0 ? Color("ConsoleOutputsBackgroundIndexed") : Color("ConsoleOutputsBackground")
 }
 
 private struct CLTaskIndexedOutput: Hashable, Identifiable {
@@ -51,6 +145,12 @@ private struct TaskConsoleOutputTextSelectionStyle: ViewModifier {
 private struct CLTaskIndexedOutputView: View {
     var output: CLTaskIndexedOutput
 
+    @State private var appearanceRawValue: String = UserDefaults.standard.string(forKey: String.settingsAppearanceKey) ?? "dark"
+
+    private var appearance: Appearance {
+        return Appearance(rawValue: appearanceRawValue)  ?? .dark
+    }
+
     var body: some View {
         HStack {
             if #available(macOS 12.0, *) {
@@ -66,6 +166,19 @@ private struct CLTaskIndexedOutputView: View {
         .id(output.id)
         .background(outputsBackgroundColor(index: output.index))
     }
+
+    private var consoleBackgroundColor: Color {
+        switch appearance {
+        case .dark:
+            return CLColor.darkBackground
+        case .light:
+            return CLColor.lightBackground
+        case .device:
+            return Color.blue
+        case .reverse:
+            return Color.green
+        }
+    }
 }
 
 struct CLConsoleView: View {
@@ -75,6 +188,8 @@ struct CLConsoleView: View {
 
     @State private var taskID: UUID!
     @State private var lastTaskOutputID: UUID!
+
+    @State private var appearanceRawValue: String = UserDefaults.standard.string(forKey: String.settingsAppearanceKey) ?? "dark"
 
     var body: some View {
         VStack(spacing: 0) {
@@ -185,6 +300,10 @@ struct CLConsoleView: View {
             .background(Color.secondary.opacity(0.05))
         }
         .padding(0)
+    }
+
+    private var appearance: Appearance {
+        return Appearance(rawValue: appearanceRawValue)  ?? .dark
     }
 
     private func outputsWithIndex(outputs: [CLTaskOutput]) -> [CLTaskIndexedOutput] {
