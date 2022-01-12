@@ -66,9 +66,9 @@ private struct CLTaskIndexedOutputView: View {
         case .dracula:
             return output.index % 2 == 0 ? CLColor.draculaBackgroundAlternate : CLColor.draculaBackground
         case .device:
-            return Color.blue
+            return output.index % 2 == 0 ? Color("ConsoleBackgroundAlternate") : Color("ConsoleBackground")
         case .reverse:
-            return Color.white
+            return output.index % 2 == 0 ? Color("ReverseConsoleBackgroundAlternate") : Color("ReverseConsoleBackground")
         }
     }
 
@@ -81,9 +81,9 @@ private struct CLTaskIndexedOutputView: View {
         case .dracula:
             return output.index % 2 == 0 ? CLColor.draculaForegroundAlternate : CLColor.draculaForeground
         case .device:
-            return Color.white
+            return output.index % 2 == 0 ? Color("ConsoleForegroundAlternate") : Color("ConsoleForeground")
         case .reverse:
-            return Color.blue
+            return output.index % 2 == 0 ? Color("ReverseConsoleForegroundAlternate") : Color("ReverseConsoleForeground")
         }
     }
 
@@ -126,9 +126,9 @@ struct CLConsoleView: View {
         case .dracula:
             return CLColor.draculaBackgroundAlternate
         case .device:
-            return Color.blue
+            return Color("ConsoleBackgroundAlternate")
         case .reverse:
-            return Color.white
+            return Color("ReverseConsoleBackgroundAlternate")
         }
     }
 
