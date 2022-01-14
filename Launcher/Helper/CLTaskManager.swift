@@ -279,27 +279,27 @@ class CLTaskManager: NSObject {
                     } else {
                         processedOutputs.append(o)
                     }
-
+                    
+                    var outputs: [CLTaskOutput] = []
                     for processedOutput in processedOutputs {
                         let taskOutput = CLTaskOutput(id: UUID(), taskID: task.id, projectID: task.projectID, content: processedOutput)
-                        DispatchQueue.main.async {
-                            CLStore.shared.projectOutputs.append(taskOutput)
-                        }
+                        outputs.append(taskOutput)
                     }
                     
                     DispatchQueue.main.async {
+                        if outputs.count > 0 {
+                            CLStore.shared.projectOutputs.append(contentsOf: outputs)
+                        }
                         if CLStore.shared.taskProcesses[task.id.uuidString] == nil {
                             CLStore.shared.taskProcesses[task.id.uuidString] = process
                             self.sendNotification(forTask: task, started: true)
                         }
                     }
                 } else if output == nil {
-                    DispatchQueue.global(qos: .utility).async {
-                        DispatchQueue.main.async {
-                            if CLStore.shared.taskProcesses[task.id.uuidString] == nil {
-                                CLStore.shared.taskProcesses[task.id.uuidString] = process
-                                self.sendNotification(forTask: task, started: true)
-                            }
+                    DispatchQueue.main.async {
+                        if CLStore.shared.taskProcesses[task.id.uuidString] == nil {
+                            CLStore.shared.taskProcesses[task.id.uuidString] = process
+                            self.sendNotification(forTask: task, started: true)
                         }
                     }
                 }
