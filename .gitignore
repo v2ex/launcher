@@ -4,3 +4,4 @@ xcuserdata/
 *.xcuserdatad
 /build/
 /Export/
+local.xcconfig
