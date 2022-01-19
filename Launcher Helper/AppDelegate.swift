@@ -14,7 +14,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_: Notification) {
-        let mainAppIdentifier = "com.v2ex.CodeLauncher"
+        let mainAppIdentifier = CLConfiguration.bundlePrefix + ".CodeLauncher"
         let runningApps = NSWorkspace.shared.runningApplications
         let isRunning = !runningApps.filter { $0.bundleIdentifier == mainAppIdentifier }.isEmpty
 

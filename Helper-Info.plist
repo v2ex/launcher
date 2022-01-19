@@ -4,5 +4,7 @@
 <dict>
 	<key>LSBackgroundOnly</key>
 	<true/>
+	<key>ORGANIZATION_IDENTIFIER_PREFIX</key>
+	<string>$(ORGANIZATION_IDENTIFIER_PREFIX)</string>
 </dict>
 </plist>
