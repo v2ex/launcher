@@ -76,7 +76,7 @@ private extension Process {
 
         environment = theEnvironment
 
-        let processQueue = DispatchQueue(label: "com.v2ex.codelauncher.async-command-output-queue")
+        let processQueue = DispatchQueue(label: CLConfiguration.bundlePrefix + ".codelauncher.async-command-output-queue")
         
         var outputData = Data()
         var errorData = Data()

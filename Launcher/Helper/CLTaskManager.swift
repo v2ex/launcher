@@ -387,7 +387,7 @@ class CLTaskManager: NSObject {
     }
 
     func updateLaunchOption() {
-        let launcherAppID = "com.v2ex.CodeLauncher.helper"
+        let launcherAppID = CLConfiguration.bundlePrefix + ".CodeLauncher.helper"
         let runningApps = NSWorkspace.shared.runningApplications
         let isRunning = !runningApps.filter { $0.bundleIdentifier == launcherAppID }.isEmpty
         let currentLaunchOption = UserDefaults.standard.bool(forKey: String.settingsLaunchOptionKey)
