@@ -93,7 +93,7 @@ struct CLContentView: View {
         }
         if ended {
             DispatchQueue.global(qos: .background).async {
-                UserDefaults.standard.set(updatedTaskViewHeight, forKey: store.currentProjectID.uuidString + "-" + String.lastActiveConsoleTaskViewHeightKey)
+                CLDefaults[store.currentProjectID].lastActiveConsoleTaskViewHeight = updatedTaskViewHeight
             }
         }
     }

@@ -347,7 +347,7 @@ class CLTaskManager: NSObject {
     }
 
     func restartFailedTask(task: CLTask) {
-        guard UserDefaults.standard.bool(forKey: String.settingsAutoRestartFailedTaskKey) else { return }
+        guard CLDefaults.default.settingsAutoRestartFailedTask else { return }
 
         // Set a maxium retry count for this task.
         // If exceeds:
@@ -357,7 +357,8 @@ class CLTaskManager: NSObject {
 
         let count = CLStore.shared.retriedTasks[task.id.uuidString] ?? 0
         if count > 10 {
-            UserDefaults.standard.set(false, forKey: String.settingsAutoRestartFailedTaskKey)
+            CLDefaults.default.settingsAutoRestartFailedTask = false
+
             DispatchQueue.main.async {
                 CLStore.shared.retriedTasks.removeValue(forKey: task.id.uuidString)
             }
@@ -374,7 +375,8 @@ class CLTaskManager: NSObject {
     }
 
     func sendNotification(forTask task: CLTask, started: Bool, failed: Bool = false) {
-        guard UserDefaults.standard.bool(forKey: String.settingsUseNotificationForTaskStatusKey) else { return }
+        guard CLDefaults.default.settingsUseNotificationForTaskStatus else { return }
+
         let title = failed ? "Task Failed" : (started ? "Task Started" : "Task Finished")
         let subtitle = task.executable + " " + task.arguments.replacingOccurrences(of: ",", with: "")
         let content = UNMutableNotificationContent()
@@ -390,15 +392,16 @@ class CLTaskManager: NSObject {
         let launcherAppID = CLConfiguration.bundlePrefix + ".CodeLauncher.helper"
         let runningApps = NSWorkspace.shared.runningApplications
         let isRunning = !runningApps.filter { $0.bundleIdentifier == launcherAppID }.isEmpty
-        let currentLaunchOption = UserDefaults.standard.bool(forKey: String.settingsLaunchOptionKey)
+        let currentLaunchOption = CLDefaults.default.settingsLaunchOption
         let succeed = SMLoginItemSetEnabled(launcherAppID as CFString, currentLaunchOption)
         if isRunning {
             DistributedNotificationCenter.default().post(name: .killHelper, object: Bundle.main.bundleIdentifier!)
         }
+        
         if !succeed {
-            UserDefaults.standard.set(false, forKey: String.settingsLaunchOptionKey)
+            CLDefaults.default.settingsLaunchOption = false
         } else {
-            UserDefaults.standard.set(!currentLaunchOption, forKey: String.settingsLaunchOptionKey)
+            CLDefaults.default.settingsLaunchOption = !currentLaunchOption
         }
     }
 

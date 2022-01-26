@@ -18,10 +18,16 @@ enum Appearance: String, Codable, CaseIterable, Identifiable {
 }
 
 struct CLSettingsGeneralView: View {
-    @AppStorage(String.settingsUseNotificationForTaskStatusKey) var useNotification: Bool = UserDefaults.standard.bool(forKey: String.settingsUseNotificationForTaskStatusKey)
-    @AppStorage(String.settingsLaunchOptionKey) var launchOption: Bool = UserDefaults.standard.bool(forKey: String.settingsLaunchOptionKey)
-    @AppStorage(String.settingsAutoRestartFailedTaskKey) var autoRestartTask: Bool = UserDefaults.standard.bool(forKey: String.settingsAutoRestartFailedTaskKey)
-    @AppStorage(String.settingsAppearanceKey) var selectedAppearance: Appearance = .dark
+    @AppStorage(CLDefaults.settingsUseNotificationForTaskStatusKey) var useNotification =
+        CLDefaults.default.settingsUseNotificationForTaskStatus
+
+    @AppStorage(CLDefaults.settingsLaunchOptionKey) var launchOption =
+        CLDefaults.default.settingsLaunchOption
+
+    @AppStorage(CLDefaults.settingsAutoRestartFailedTaskKey) var autoRestartTask =
+        CLDefaults.default.settingsAutoRestartFailedTask
+
+    @AppStorage(CLDefaults.settingsAppearanceKey) var selectedAppearance: Appearance = .dark
 
     var body: some View {
         VStack(spacing: 20) {
