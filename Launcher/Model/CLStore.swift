@@ -23,7 +23,7 @@ class CLStore: ObservableObject {
             DispatchQueue.global(qos: .background).async {
                 self._saveTasks()
             }
-            if let uuidString = UserDefaults.standard.object(forKey: String.lastActiveProjectUUIDKey) as? String, let uuid = UUID(uuidString: uuidString) {
+            if let uuidString = CLDefaults.default.lastActiveProjectUUID, let uuid = UUID(uuidString: uuidString) {
                 DispatchQueue.main.async {
                     CLStore.shared.currentProjectID = uuid
                 }
@@ -33,18 +33,17 @@ class CLStore: ObservableObject {
 
     @Published var currentProjectID: UUID = .init() {
         didSet {
-            UserDefaults.standard.set(currentProjectID.uuidString, forKey: String.lastActiveProjectUUIDKey)
+            CLDefaults.default.lastActiveProjectUUID = currentProjectID.uuidString
 
-            let lastSelectedTaskIndexKey = currentProjectID.uuidString + "-" + String.lastSelectedTaskIndexKey
-            if UserDefaults.standard.value(forKey: lastSelectedTaskIndexKey) == nil {
-                selectedTaskIndex = -1
+            if let index = CLDefaults[currentProjectID].lastSelectedTaskIndex {
+                selectedTaskIndex = index
             } else {
-                selectedTaskIndex = UserDefaults.standard.integer(forKey: lastSelectedTaskIndexKey)
+                selectedTaskIndex = -1
             }
 
             let minTaskViewHeight: CGFloat = 84
-            let lastSelectedProjectConsoleTaskViewHeightKey = currentProjectID.uuidString + "-" + String.lastActiveConsoleTaskViewHeightKey
-            let lastActiveTaskViewHeight: CGFloat = .init(UserDefaults.standard.float(forKey: lastSelectedProjectConsoleTaskViewHeightKey))
+
+            let lastActiveTaskViewHeight = CLDefaults[currentProjectID].lastActiveConsoleTaskViewHeight
 
             if lastActiveTaskViewHeight > 0 {
                 outputTaskViewHeight = lastActiveTaskViewHeight
@@ -62,8 +61,7 @@ class CLStore: ObservableObject {
                 }
             }
 
-            let lastSelectedProjectConsoleStatusKey = currentProjectID.uuidString + "-" + String.lastSelectedProjectConsoleStatusKey
-            outputConsoleClosed = UserDefaults.standard.bool(forKey: lastSelectedProjectConsoleStatusKey)
+            outputConsoleClosed = CLDefaults[currentProjectID].lastSelectedProjectConsoleStatus
 
             NotificationCenter.default.post(name: .scrollDownToLatestConsoleOutput, object: nil)
         }
@@ -109,15 +107,13 @@ class CLStore: ObservableObject {
 
     @Published var selectedTaskIndex: Int = -1 {
         didSet {
-            let lastSelectedTaskIndexKey = currentProjectID.uuidString + "-" + String.lastSelectedTaskIndexKey
-            UserDefaults.standard.set(selectedTaskIndex, forKey: lastSelectedTaskIndexKey)
+            CLDefaults[currentProjectID].lastSelectedTaskIndex = selectedTaskIndex
         }
     }
 
     @Published var outputConsoleClosed: Bool = false {
         didSet {
-            let lastSelectedProjectConsoleStatusKey = currentProjectID.uuidString + "-" + String.lastSelectedProjectConsoleStatusKey
-            UserDefaults.standard.set(outputConsoleClosed, forKey: lastSelectedProjectConsoleStatusKey)
+            CLDefaults[currentProjectID].lastSelectedProjectConsoleStatus = outputConsoleClosed
         }
     }
 

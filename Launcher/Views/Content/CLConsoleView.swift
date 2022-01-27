@@ -55,7 +55,7 @@ private struct CLTaskIndexedOutput: Hashable, Identifiable {
 private struct CLTaskIndexedOutputView: View {
     var output: CLTaskIndexedOutput
 
-    @AppStorage(String.settingsAppearanceKey) var appearance: Appearance = .dark
+    @AppStorage(CLDefaults.settingsAppearanceKey) var appearance: Appearance = .dark
 
     private func backgroundColor(for appearance: Appearance) -> Color {
         switch (appearance) {
@@ -115,7 +115,7 @@ struct CLConsoleView: View {
     @State private var taskID: UUID!
     @State private var lastTaskOutputID: UUID!
 
-    @AppStorage(String.settingsAppearanceKey) var appearance: Appearance = .dark
+    @AppStorage(CLDefaults.settingsAppearanceKey) var appearance: Appearance = .dark
 
     private func backgroundColor(for appearance: Appearance) -> Color {
         switch (appearance) {

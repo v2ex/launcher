@@ -10,17 +10,6 @@ import Foundation
 import SwiftUI
 
 extension String {
-    static let settingsLaunchOptionKey = "CLUserDefaultsLaunchOptionKey"
-    static let settingsUseNotificationForTaskStatusKey = "CLUserDefaultsUseNotificationForTaskStatusKey"
-    static let settingsAutoRestartFailedTaskKey = "CLUserDefaultsAutoRestartFailedTaskKey"
-    static let settingsAppearanceKey = "CLUserDefaultsAppearanceKey"
-
-    static let lastActiveProjectUUIDKey = "CLUserDefaultsLastActiveProjectUUIDKey"
-    static let lastSelectedTaskIndexKey = "CLUserDefaultsLastSelectedTaskIndexKey"
-    static let lastSelectedProjectConsoleStatusKey = "CLUserDefaultsLastSelectedProjectConsoleStatusKey"
-    static let lastActiveConsoleTaskViewHeightKey = "CLUserDefaultsLastActiveConsoleTaskViewHeightKey"
-
-    static let killHelper = Notification.Name("CLKillCodeLauncherHelper")
 
     static let taskCompleteIdentifier: String = "codelauncher.v2ex.task.complete"
     static let taskCompleteActionDismissIdentifier: String = "codelauncher.v2ex.task.dismiss"

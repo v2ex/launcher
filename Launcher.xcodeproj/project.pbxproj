@@ -42,6 +42,7 @@
 		2AE29041274E24C900619968 /* CLProject.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AE29040274E24C900619968 /* CLProject.swift */; };
 		2AE29046274E8ED300619968 /* ProjectTextFieldStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AE29045274E8ED300619968 /* ProjectTextFieldStyle.swift */; };
 		2AE29048274E987600619968 /* CLConsoleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AE29047274E987600619968 /* CLConsoleView.swift */; };
+		D7CBBA2F279D9D9800AC665C /* CLDefaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7CBBA2E279D9D9800AC665C /* CLDefaults.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -168,6 +169,7 @@
 		2AE29045274E8ED300619968 /* ProjectTextFieldStyle.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = ProjectTextFieldStyle.swift; path = launcher/Views/Styles/ProjectTextFieldStyle.swift; sourceTree = SOURCE_ROOT; };
 		2AE29047274E987600619968 /* CLConsoleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CLConsoleView.swift; path = launcher/Views/Content/CLConsoleView.swift; sourceTree = SOURCE_ROOT; };
 		6A43B3C727950DF900FF1729 /* Launcher.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Launcher.xcconfig; sourceTree = "<group>"; };
+		D7CBBA2E279D9D9800AC665C /* CLDefaults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLDefaults.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -238,6 +240,7 @@
 			children = (
 				2A6057B22748B838001A68C7 /* CLCommand.swift */,
 				2A64E82E274687FC00EB85C8 /* CLTaskManager.swift */,
+				D7CBBA2E279D9D9800AC665C /* CLDefaults.swift */,
 				2A64E8432746BBD800EB85C8 /* Extensions.swift */,
 			);
 			path = Helper;
@@ -466,6 +469,7 @@
 				2A6057B32748B838001A68C7 /* CLCommand.swift in Sources */,
 				2A64E8312746881700EB85C8 /* CLStore.swift in Sources */,
 				2AE2903F274E0EF000619968 /* CLSettingsGeneralView.swift in Sources */,
+				D7CBBA2F279D9D9800AC665C /* CLDefaults.swift in Sources */,
 				2A64E8442746BBD800EB85C8 /* Extensions.swift in Sources */,
 				2AE29041274E24C900619968 /* CLProject.swift in Sources */,
 				2A4439492765B9F800F630FF /* CLProjectAvatarView.swift in Sources */,
