@@ -119,7 +119,6 @@ class CLStore: ObservableObject {
 
     @Published var outputTaskViewHeight: CGFloat = 84
 
-    @Published var retriedTasks: [String: Int] = [:]
     @Published var editingProject: CLProject!
 
     @Published var isAlert: Bool = false
