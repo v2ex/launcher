@@ -250,12 +250,12 @@ class CLTaskManager: NSObject {
         skipRetryingTasks.remove(task)
         task.launchTask { process, completed, output in
             if completed {
-                debugPrint("CLTaskManager.startTask: task \(task.executable) completed.")
+//                debugPrint("CLTaskManager.startTask: task \(task.executable) completed.")
                 if let p = process {
                     DispatchQueue.main.sync {
                         CLStore.shared[task.projectID][task.id].lastExitCode = p.terminationStatus
                     }
-                    debugPrint("Task \(task.executable) termination status: \(p.terminationStatus)")
+//                    debugPrint("Task \(task.executable) termination status: \(p.terminationStatus)")
                 }
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                     CLStore.shared.taskProcesses.removeValue(forKey: task.id.uuidString)
@@ -269,7 +269,7 @@ class CLTaskManager: NSObject {
                 }
                 self.sendNotification(forTask: task, started: false)
             } else {
-                debugPrint("CLTaskManager.startTask: task \(task.executable) started.")
+//                debugPrint("CLTaskManager.startTask: task \(task.executable) started.")
                 if let o = output, o != "" {
                     var processedOutputs: [String] = []
                     if (o as NSString).range(of: "\n", options: .caseInsensitive).location != NSNotFound {
@@ -285,11 +285,33 @@ class CLTaskManager: NSObject {
                         let taskOutput = CLTaskOutput(id: UUID(), taskID: task.id, projectID: task.projectID, content: processedOutput)
                         outputs.append(taskOutput)
                     }
-                    
+
                     DispatchQueue.main.async {
                         if outputs.count > 0 {
                             CLStore.shared.projectOutputs.append(contentsOf: outputs)
                         }
+                        
+                        // check project output limits
+                        var taskProjectOutputs: [CLTaskOutput] = CLStore.shared.projectOutputs.filter { t in
+                            return t.projectID == task.projectID
+                        }
+                        let taskProjectOutputsLimit: Int = 5000
+                        var removedTaskOutputs: [CLTaskOutput] = []
+                        while taskProjectOutputs.count >= taskProjectOutputsLimit {
+                            removedTaskOutputs.append(taskProjectOutputs.removeFirst())
+                        }
+                        
+                        if removedTaskOutputs.count > 0 {
+                            CLStore.shared.projectOutputs = CLStore.shared.projectOutputs.filter { t in
+                                var skip: Bool = false
+                                for removedTaskOutput in removedTaskOutputs {
+                                    skip = t.id == removedTaskOutput.id
+                                    break
+                                }
+                                return !skip
+                            }
+                        }
+                        
                         if CLStore.shared.taskProcesses[task.id.uuidString] == nil {
                             CLStore.shared.taskProcesses[task.id.uuidString] = process
                             self.sendNotification(forTask: task, started: true)

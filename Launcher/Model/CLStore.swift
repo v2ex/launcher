@@ -96,11 +96,9 @@ class CLStore: ObservableObject {
     @Published var activeProjects: [String] = []
     @Published var projectOutputs: [CLTaskOutput] = [] {
         didSet {
-            DispatchQueue.global(qos: .background).async {
-                guard let last = self.projectOutputs.last, last.projectID == self.currentProjectID else { return }
-                DispatchQueue.main.async {
-                    NotificationCenter.default.post(name: .scrollDownToLatestConsoleOutput, object: last)
-                }
+            guard let last = self.projectOutputs.last, last.projectID == self.currentProjectID else { return }
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(name: .scrollDownToLatestConsoleOutput, object: last)
             }
         }
     }
