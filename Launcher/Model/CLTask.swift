@@ -101,8 +101,6 @@ struct CLTask: Codable, Hashable, Identifiable {
         let taskValidation = taskValidated()
         debugPrint("task validation: \(taskValidation), path: \(CLStore.shared.envPATH)")
         guard taskValidation.valid, let url = taskValidation.executableURL, let dir = taskValidation.directoryURL else {
-            // MARK: TODO: Notify.
-
             debugPrint("Invalid task: \(self)")
             return complete(nil, false, "Invalid task, abort.")
         }
