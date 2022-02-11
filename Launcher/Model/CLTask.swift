@@ -101,8 +101,6 @@ struct CLTask: Codable, Hashable, Identifiable {
         let taskValidation = taskValidated()
         debugPrint("task validation: \(taskValidation), path: \(CLStore.shared.envPATH)")
         guard taskValidation.valid, let url = taskValidation.executableURL, let dir = taskValidation.directoryURL else {
-            // MARK: TODO: Notify.
-
             debugPrint("Invalid task: \(self)")
             return complete(nil, false, "Invalid task, abort.")
         }
@@ -116,8 +114,8 @@ struct CLTask: Codable, Hashable, Identifiable {
         var valid = true
         var alternativeExecutableURL: URL?
         var alternativeDirectoryURL: URL?
-
-        if !executable.starts(with: "/") {
+        
+        if executable != "" && !executable.starts(with: "/") {
             for p in CLStore.shared.envPATH.components(separatedBy: ":") {
                 let anExecutablePath = p + "/" + executable
                 if FileManager.default.fileExists(atPath: anExecutablePath), FileManager.default.isExecutableFile(atPath: anExecutablePath) {

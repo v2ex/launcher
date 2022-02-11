@@ -28,11 +28,10 @@ struct CLSettingsAdvancedView: View {
                     } label: {
                         Text("Reset Database")
                     }
-                    
+
                     Spacer()
                 }
             }
-
             Spacer()
         }
         .padding()

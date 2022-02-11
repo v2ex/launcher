@@ -13,9 +13,8 @@ import UserNotifications
 class CLTaskManager: NSObject {
     static let shared: CLTaskManager = .init()
 
-    private var unitTesting: Bool = {
-        ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
-    }()
+    private var skipRetryingTasks: Set<CLTask> = Set<CLTask>()
+    private var retriedTasks: [String: Int] = [:]
 
     override private init() {
         super.init()
@@ -247,7 +246,9 @@ class CLTaskManager: NSObject {
     }
 
     func startTask(task: CLTask) {
+        guard task.taskValidated().valid else { return }
         guard CLStore.shared.taskProcesses[task.id.uuidString] == nil else { return }
+        skipRetryingTasks.remove(task)
         task.launchTask { process, completed, output in
             if completed {
                 debugPrint("CLTaskManager.startTask: task \(task.executable) completed.")
@@ -271,28 +272,51 @@ class CLTaskManager: NSObject {
             } else {
                 debugPrint("CLTaskManager.startTask: task \(task.executable) started.")
                 if let o = output, o != "" {
-                    var processedOutputs: [String] = []
-                    if (o as NSString).range(of: "\n", options: .caseInsensitive).location != NSNotFound {
-                        for processedString in o.components(separatedBy: "\n") {
-                            processedOutputs.append(processedString)
+                    DispatchQueue.global(qos: .background).async {
+                        var processedOutputs: [String] = []
+                        if (o as NSString).range(of: "\n", options: .caseInsensitive).location != NSNotFound {
+                            for processedString in o.components(separatedBy: "\n") {
+                                processedOutputs.append(processedString)
+                            }
+                        } else {
+                            processedOutputs.append(o)
                         }
-                    } else {
-                        processedOutputs.append(o)
-                    }
-                    
-                    var outputs: [CLTaskOutput] = []
-                    for processedOutput in processedOutputs {
-                        let taskOutput = CLTaskOutput(id: UUID(), taskID: task.id, projectID: task.projectID, content: processedOutput)
-                        outputs.append(taskOutput)
-                    }
-                    
-                    DispatchQueue.main.async {
-                        if outputs.count > 0 {
-                            CLStore.shared.projectOutputs.append(contentsOf: outputs)
+                        
+                        var outputs: [CLTaskOutput] = []
+                        for processedOutput in processedOutputs {
+                            let taskOutput = CLTaskOutput(id: UUID(), taskID: task.id, projectID: task.projectID, content: processedOutput)
+                            outputs.append(taskOutput)
                         }
-                        if CLStore.shared.taskProcesses[task.id.uuidString] == nil {
-                            CLStore.shared.taskProcesses[task.id.uuidString] = process
-                            self.sendNotification(forTask: task, started: true)
+
+                        DispatchQueue.main.async {
+                            if outputs.count > 0 {
+                                CLStore.shared.projectOutputs.append(contentsOf: outputs)
+                            }
+                            if CLStore.shared.taskProcesses[task.id.uuidString] == nil {
+                                CLStore.shared.taskProcesses[task.id.uuidString] = process
+                                self.sendNotification(forTask: task, started: true)
+                            }
+                        }
+
+                        var taskProjectOutputs: [CLTaskOutput] = CLStore.shared.projectOutputs.filter { t in
+                            return t.projectID == task.projectID
+                        }
+                        let taskProjectOutputsLimit: Int = 5000
+                        var removedTaskOutputs: [CLTaskOutput] = []
+                        while taskProjectOutputs.count >= taskProjectOutputsLimit {
+                            removedTaskOutputs.append(taskProjectOutputs.removeFirst())
+                        }
+                        if removedTaskOutputs.count > 0 {
+                            DispatchQueue.main.async {
+                                CLStore.shared.projectOutputs = CLStore.shared.projectOutputs.filter { t in
+                                    var skip: Bool = false
+                                    for removedTaskOutput in removedTaskOutputs {
+                                        skip = t.id == removedTaskOutput.id
+                                        break
+                                    }
+                                    return !skip
+                                }
+                            }
                         }
                     }
                 } else if output == nil {
@@ -308,6 +332,7 @@ class CLTaskManager: NSObject {
     }
 
     func stopTask(task: CLTask) {
+        skipRetryingTasks.insert(task)
         var taskProcesses = CLStore.shared.taskProcesses
         guard taskProcesses[task.id.uuidString] != nil else { return }
         var targetProcess: Process?
@@ -347,29 +372,29 @@ class CLTaskManager: NSObject {
     }
 
     func restartFailedTask(task: CLTask) {
+        // Restart a task only if:
+        //  - "Auto Restart Failed Tasks" is turned on.
         guard CLDefaults.default.settingsAutoRestartFailedTask else { return }
+        //  - Not manually stopped
+        guard !skipRetryingTasks.contains(task) else { return }
 
         // Set a maxium retry count for this task.
         // If exceeds:
         // - Ignore this task
         // - Turn off auto restart option
         // - Retry count of this task will be reset when turned on auto restart option again.
-
-        let count = CLStore.shared.retriedTasks[task.id.uuidString] ?? 0
+        let count = retriedTasks[task.id.uuidString] ?? 0
         if count > 10 {
             CLDefaults.default.settingsAutoRestartFailedTask = false
-
-            DispatchQueue.main.async {
-                CLStore.shared.retriedTasks.removeValue(forKey: task.id.uuidString)
-            }
+            retriedTasks.removeValue(forKey: task.id.uuidString)
             return
         }
+        retriedTasks[task.id.uuidString] = count + 1
         DispatchQueue.global(qos: .background).async {
             DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
                 DispatchQueue.global(qos: .utility).async {
                     self.startTask(task: task)
                 }
-                CLStore.shared.retriedTasks[task.id.uuidString] = count + 1
             }
         }
     }
