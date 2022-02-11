@@ -114,8 +114,8 @@ struct CLTask: Codable, Hashable, Identifiable {
         var valid = true
         var alternativeExecutableURL: URL?
         var alternativeDirectoryURL: URL?
-
-        if !executable.starts(with: "/") {
+        
+        if executable != "" && !executable.starts(with: "/") {
             for p in CLStore.shared.envPATH.components(separatedBy: ":") {
                 let anExecutablePath = p + "/" + executable
                 if FileManager.default.fileExists(atPath: anExecutablePath), FileManager.default.isExecutableFile(atPath: anExecutablePath) {

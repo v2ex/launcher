@@ -246,6 +246,7 @@ class CLTaskManager: NSObject {
     }
 
     func startTask(task: CLTask) {
+        guard task.taskValidated().valid else { return }
         guard CLStore.shared.taskProcesses[task.id.uuidString] == nil else { return }
         skipRetryingTasks.remove(task)
         task.launchTask { process, completed, output in
