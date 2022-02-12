@@ -84,3 +84,7 @@ jobs:
       - name: Restore to Default Keychain
         run: |
           security default-keychain -s login.keychain
+
+      - name: Purge CDN Cache (appcast.xml file only)
+        run: |
+          curl -X DELETE -H "Content-Type: application/json" -H "Authorization: Bearer ${{ secrets.DO_PLATFORM_TOKEN }}" -d '{"files": ["codelauncher/appcast.xml"]}' "https://api.digitalocean.com/v2/cdn/endpoints/${{ secrets.DO_CDN_ENDPOINT_ID }}/cache"
