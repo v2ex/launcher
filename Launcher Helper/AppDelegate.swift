@@ -30,7 +30,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             components.append("CodeLauncher")
 
             let aPath = NSString.path(withComponents: components)
-            NSWorkspace.shared.launchApplication(aPath)
+            if let url = URL(string: aPath) {
+                NSWorkspace.shared.openApplication(at: url, configuration: NSWorkspace.OpenConfiguration(), completionHandler: nil)
+            }
         } else {
             terminate()
         }

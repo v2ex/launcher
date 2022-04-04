@@ -64,7 +64,7 @@ class CLTaskManager: NSObject {
             guard settings.authorizationStatus == .authorized || settings.authorizationStatus == .provisional else { return }
             if settings.alertSetting == .disabled {
                 center.requestAuthorization(options: [.alert]) { granted, error in
-                    debugPrint("alert settings granted?: \(granted), error: \(error)")
+                    debugPrint("alert settings granted?: \(granted), error: \(String(describing: error))")
                 }
             } else {
                 debugPrint("alert settings granted.")

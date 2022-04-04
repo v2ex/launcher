@@ -193,15 +193,11 @@ struct CLTaskItemView: View {
 
         let url = URL(fileURLWithPath: task.directory)
 
-        NSWorkspace.shared.openFile("\(url.path)", withApplication: appUrl.path)
+        NSWorkspace.shared.open([url], withApplicationAt: appUrl, configuration: self.openConfiguration(), completionHandler: nil)
     }
 
     private func hasVSCode() -> Bool {
-        guard
-            let appUrl = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.microsoft.VSCode")
-        else { return false }
-
-        return true
+        NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.microsoft.VSCode") != nil
     }
 
     private func openVSCode(_ task: CLTask) {
@@ -210,13 +206,20 @@ struct CLTaskItemView: View {
         else { return }
 
         let url = URL(fileURLWithPath: task.directory)
-
-        NSWorkspace.shared.openFile("\(url.path)", withApplication: appUrl.path)
+        NSWorkspace.shared.open([url], withApplicationAt: appUrl, configuration: self.openConfiguration(), completionHandler: nil)
     }
 
     private func revealInFinder(_ task: CLTask) {
         let url = URL(fileURLWithPath: task.directory)
         NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath: url.path)
+    }
+    
+    private func openConfiguration() -> NSWorkspace.OpenConfiguration {
+        let conf = NSWorkspace.OpenConfiguration()
+        conf.hidesOthers = false
+        conf.hides = false
+        conf.activates = true
+        return conf
     }
 }
 
