@@ -119,6 +119,18 @@ struct CLTaskItemView: View {
                     .frame(width: 14, height: 14, alignment: .center)
                 Text("Open a Terminal")
             }
+            
+            if hasiTerm() {
+                Button{
+                    openiTerm(task)
+                } label: {
+                    Image(systemName: "terminal.fill")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 14, height: 14, alignment: .center)
+                    Text("Open in iTerm")
+                }
+            }
 
             if hasVSCode() {
                 Button {
@@ -205,6 +217,19 @@ struct CLTaskItemView: View {
             let appUrl = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.microsoft.VSCode")
         else { return }
 
+        let url = URL(fileURLWithPath: task.directory)
+        NSWorkspace.shared.open([url], withApplicationAt: appUrl, configuration: self.openConfiguration(), completionHandler: nil)
+    }
+    
+    private func hasiTerm() -> Bool {
+        NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.googlecode.iterm2") != nil
+    }
+    
+    private func openiTerm(_ task: CLTask) {
+        guard
+            let appUrl = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.googlecode.iterm2")
+        else { return }
+        
         let url = URL(fileURLWithPath: task.directory)
         NSWorkspace.shared.open([url], withApplicationAt: appUrl, configuration: self.openConfiguration(), completionHandler: nil)
     }
