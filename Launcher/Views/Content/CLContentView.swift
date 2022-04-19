@@ -66,7 +66,7 @@ struct CLContentView: View {
                                     }
                             )
 
-                        CLConsoleView(project: p)
+                        CLConsoleView(withProject: p)
                             .frame(minHeight: consoleMinHeight)
                             .environmentObject(store)
                     }

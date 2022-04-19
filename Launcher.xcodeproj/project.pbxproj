@@ -13,6 +13,7 @@
 		2A214784275081D8000272B8 /* CLTaskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A214783275081D8000272B8 /* CLTaskView.swift */; };
 		2A240E63275CCA200003F816 /* CLTaskItemView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A240E62275CCA200003F816 /* CLTaskItemView.swift */; };
 		2A240E65275CD1280003F816 /* TaskPropertyLabelStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A240E64275CD1280003F816 /* TaskPropertyLabelStyle.swift */; };
+		2A315EF6280E99D40019E768 /* CLConsoleViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A315EF5280E99D40019E768 /* CLConsoleViewModel.swift */; };
 		2A4439492765B9F800F630FF /* CLProjectAvatarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A4439482765B9F800F630FF /* CLProjectAvatarView.swift */; };
 		2A6057B32748B838001A68C7 /* CLCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A6057B22748B838001A68C7 /* CLCommand.swift */; };
 		2A6057BA27493103001A68C7 /* CLProjectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A6057B927493103001A68C7 /* CLProjectView.swift */; };
@@ -137,6 +138,7 @@
 		2A214783275081D8000272B8 /* CLTaskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLTaskView.swift; sourceTree = "<group>"; };
 		2A240E62275CCA200003F816 /* CLTaskItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLTaskItemView.swift; sourceTree = "<group>"; };
 		2A240E64275CD1280003F816 /* TaskPropertyLabelStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskPropertyLabelStyle.swift; sourceTree = "<group>"; };
+		2A315EF5280E99D40019E768 /* CLConsoleViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLConsoleViewModel.swift; sourceTree = "<group>"; };
 		2A4439482765B9F800F630FF /* CLProjectAvatarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLProjectAvatarView.swift; sourceTree = "<group>"; };
 		2A6057B22748B838001A68C7 /* CLCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CLCommand.swift; path = launcher/Helper/CLCommand.swift; sourceTree = SOURCE_ROOT; };
 		2A6057B927493103001A68C7 /* CLProjectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CLProjectView.swift; path = launcher/Views/Content/CLProjectView.swift; sourceTree = SOURCE_ROOT; };
@@ -191,6 +193,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		2A315EF7280E99DA0019E768 /* ViewModel */ = {
+			isa = PBXGroup;
+			children = (
+				2A315EF5280E99D40019E768 /* CLConsoleViewModel.swift */,
+			);
+			path = ViewModel;
+			sourceTree = "<group>";
+		};
 		2A64E7F427463E6C00EB85C8 = {
 			isa = PBXGroup;
 			children = (
@@ -217,6 +227,7 @@
 			children = (
 				2A64E80027463E6C00EB85C8 /* CLApp.swift */,
 				2A9C30072797C195005DD27A /* CLConfiguration.swift */,
+				2A315EF7280E99DA0019E768 /* ViewModel */,
 				2A64E82D2746874A00EB85C8 /* Helper */,
 				2A64E8322746881B00EB85C8 /* Model */,
 				2A64E8352746901A00EB85C8 /* Views */,
@@ -454,6 +465,7 @@
 				2A73821F276AF17A00E7ED27 /* CLVisualEffectView.swift in Sources */,
 				2AE2903D274DFE2300619968 /* CLSettingsView.swift in Sources */,
 				2A11EB4A275A507F007E45FF /* CLSidebarOptionMenuView.swift in Sources */,
+				2A315EF6280E99D40019E768 /* CLConsoleViewModel.swift in Sources */,
 				2A6057BA27493103001A68C7 /* CLProjectView.swift in Sources */,
 				2A64E83A2746905C00EB85C8 /* CLSidebarView.swift in Sources */,
 				2A9C30082797C195005DD27A /* CLConfiguration.swift in Sources */,

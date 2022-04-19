@@ -17,22 +17,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let mainAppIdentifier = CLConfiguration.bundlePrefix + ".CodeLauncher"
         let runningApps = NSWorkspace.shared.runningApplications
         let isRunning = !runningApps.filter { $0.bundleIdentifier == mainAppIdentifier }.isEmpty
-
         if !isRunning {
             DistributedNotificationCenter.default().addObserver(self, selector: #selector(terminate), name: .killHelper, object: mainAppIdentifier)
-
-            let path = Bundle.main.bundlePath as NSString
-            var components = path.pathComponents
-            components.removeLast()
-            components.removeLast()
-            components.removeLast()
-            components.append("MacOS")
-            components.append("CodeLauncher")
-
-            let aPath = NSString.path(withComponents: components)
-            if let url = URL(string: aPath) {
-                NSWorkspace.shared.openApplication(at: url, configuration: NSWorkspace.OpenConfiguration(), completionHandler: nil)
-            }
+            let path = Bundle.main.bundleURL
+            let targetPath = path.deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+            NSWorkspace.shared.openApplication(at: targetPath, configuration: NSWorkspace.OpenConfiguration(), completionHandler: nil)
         } else {
             terminate()
         }
