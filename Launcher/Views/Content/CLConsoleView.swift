@@ -117,6 +117,13 @@ struct CLConsoleView: View {
 
     @AppStorage(CLDefaults.settingsAppearanceKey) var appearance: Appearance = .dark
 
+    @ObservedObject private var viewModel: CLConsoleViewModel
+
+    init(withProject project: CLProject) {
+        _viewModel = ObservedObject(wrappedValue: CLConsoleViewModel.shared)
+        self.project = project
+    }
+
     private func backgroundColor(for appearance: Appearance) -> Color {
         switch (appearance) {
         case .dark:
@@ -137,7 +144,7 @@ struct CLConsoleView: View {
             ScrollViewReader { proxy in
                 ScrollView {
                     LazyVStack {
-                        ForEach(outputsWithIndex(outputs: store.projectOutputs.filter { t in
+                        ForEach(outputsWithIndex(outputs: viewModel.projectOutputs.filter { t in
                             if t.projectID == store.currentProjectID {
                                 if let taskID = taskID {
                                     if taskID == t.taskID {
@@ -215,7 +222,7 @@ struct CLConsoleView: View {
 
                 Button {
                     DispatchQueue.main.async {
-                        self.store.projectOutputs = self.store.projectOutputs.filter { output in
+                        self.viewModel.projectOutputs = self.viewModel.projectOutputs.filter { output in
                             if output.projectID == self.store.currentProjectID {
                                 if let taskID = self.taskID {
                                     if taskID == output.taskID {
@@ -252,11 +259,5 @@ struct CLConsoleView: View {
             index += 1
         }
         return indexedOutput
-    }
-}
-
-struct CLConsoleView_Previews: PreviewProvider {
-    static var previews: some View {
-        CLConsoleView(project: CLProject(id: UUID(), created: Date(), name: "", description: "", tasks: [], autoStart: false))
     }
 }

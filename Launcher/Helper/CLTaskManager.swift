@@ -122,7 +122,7 @@ class CLTaskManager: NSObject {
         }
         DispatchQueue.main.async {
             CLStore.shared.projects = updatedPS
-            CLStore.shared.projectOutputs = CLStore.shared.projectOutputs.filter { output in
+            CLConsoleViewModel.shared.projectOutputs = CLConsoleViewModel.shared.projectOutputs.filter { output in
                 if output.projectID == project.id {
                     return false
                 }
@@ -228,7 +228,7 @@ class CLTaskManager: NSObject {
     func resetDatabase() {
         DispatchQueue.main.async {
             CLStore.shared.projects.removeAll()
-            CLStore.shared.projectOutputs.removeAll()
+            CLConsoleViewModel.shared.projectOutputs.removeAll()
             CLStore.shared.currentProjectID = UUID()
         }
     }
@@ -290,7 +290,7 @@ class CLTaskManager: NSObject {
 
                         DispatchQueue.main.async {
                             if outputs.count > 0 {
-                                CLStore.shared.projectOutputs.append(contentsOf: outputs)
+                                CLConsoleViewModel.shared.projectOutputs.append(contentsOf: outputs)
                             }
                             if CLStore.shared.taskProcesses[task.id.uuidString] == nil {
                                 CLStore.shared.taskProcesses[task.id.uuidString] = process
@@ -298,7 +298,7 @@ class CLTaskManager: NSObject {
                             }
                         }
 
-                        var taskProjectOutputs: [CLTaskOutput] = CLStore.shared.projectOutputs.filter { t in
+                        var taskProjectOutputs: [CLTaskOutput] = CLConsoleViewModel.shared.projectOutputs.filter { t in
                             return t.projectID == task.projectID
                         }
                         let taskProjectOutputsLimit: Int = 5000
@@ -308,7 +308,7 @@ class CLTaskManager: NSObject {
                         }
                         if removedTaskOutputs.count > 0 {
                             DispatchQueue.main.async {
-                                CLStore.shared.projectOutputs = CLStore.shared.projectOutputs.filter { t in
+                                CLConsoleViewModel.shared.projectOutputs = CLConsoleViewModel.shared.projectOutputs.filter { t in
                                     var skip: Bool = false
                                     for removedTaskOutput in removedTaskOutputs {
                                         skip = t.id == removedTaskOutput.id
