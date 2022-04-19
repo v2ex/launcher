@@ -417,17 +417,10 @@ class CLTaskManager: NSObject {
         let launcherAppID = CLConfiguration.bundlePrefix + ".CodeLauncher.helper"
         let runningApps = NSWorkspace.shared.runningApplications
         let isRunning = !runningApps.filter { $0.bundleIdentifier == launcherAppID }.isEmpty
-        let currentLaunchOption = CLDefaults.default.settingsLaunchOption
-        let succeed = SMLoginItemSetEnabled(launcherAppID as CFString, currentLaunchOption)
         if isRunning {
             DistributedNotificationCenter.default().post(name: .killHelper, object: Bundle.main.bundleIdentifier!)
         }
-        
-        if !succeed {
-            CLDefaults.default.settingsLaunchOption = false
-        } else {
-            CLDefaults.default.settingsLaunchOption = !currentLaunchOption
-        }
+        SMLoginItemSetEnabled(launcherAppID as CFString, CLDefaults.default.settingsLaunchOption)
     }
 
     func avatarPath(forProjectID id: UUID, isEditing: Bool = false) -> URL {
