@@ -6,7 +6,7 @@ on:
 
 jobs:
   master_deploy:
-    runs-on: self-hosted
+    runs-on: macos-latest
 
     steps:
       - name: Checkout Project
