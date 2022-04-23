@@ -111,10 +111,10 @@ jobs:
 
       - name: Prepare for Sparkle Appcast
         run: |
-          "${{ secrets.SELF_HOSTED_SPARKLE_BIN_PATH }}" -f "${{ secrets.SELF_HOSTED_SPARKLE_KEY_PATH }}" > /dev/null
+          "${{ secrets.SPARKLE_GENERATE_KEY_PATH }}" -f "${{ secrets.SPARKLE_KEY_PATH }}" > /dev/null
           mkdir -p Release & cp CodeLauncher.zip Release/
           security unlock-keychain -p ${{ secrets.KEYCHAIN_PASSWORD }} $RUNNER_TEMP/app-signing.keychain-db
-          "${{ secrets.SELF_HOSTED_SPARKLE_GENERATE_APPCAST_PATH }}" --download-url-prefix "https://opensource.v2ex.pro/codelauncher/${{ env.RELEASE_VERSION }}/CodeLauncher.zip" Release > /dev/null
+          "${{ secrets.SPARKLE_GENERATE_APPCAST_PATH }}" --download-url-prefix "https://opensource.v2ex.pro/codelauncher/${{ env.RELEASE_VERSION }}/CodeLauncher.zip" Release > /dev/null
 
       - name: Upload Sparkle Appcast
         uses: BetaHuhn/do-spaces-action@v2
