@@ -37,9 +37,9 @@ jobs:
       - name: Set ENV
         run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
 
-      - name: Replace Team ID
-        run: |
-          tmp=$(sed 's/DEVELOPMENT_TEAM = [a-zA-Z0-9]*/DEVELOPMENT_TEAM = ${{ secrets.TEAM_ID }}/g' Launcher.xcodeproj/project.pbxproj); echo -n "$tmp" > Launcher.xcodeproj/project.pbxproj
+      # - name: Replace Team ID
+      #   run: |
+      #     tmp=$(sed 's/DEVELOPMENT_TEAM = [a-zA-Z0-9]*/DEVELOPMENT_TEAM = ${{ secrets.TEAM_ID }}/g' Launcher.xcodeproj/project.pbxproj); echo -n "$tmp" > Launcher.xcodeproj/project.pbxproj
 
       - name: Install the Apple certificate and provisioning profile
         env:
