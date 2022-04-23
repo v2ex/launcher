@@ -37,10 +37,6 @@ jobs:
       - name: Set ENV
         run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
 
-      # - name: Replace Team ID
-      #   run: |
-      #     tmp=$(sed 's/DEVELOPMENT_TEAM = [a-zA-Z0-9]*/DEVELOPMENT_TEAM = ${{ secrets.TEAM_ID }}/g' Launcher.xcodeproj/project.pbxproj); echo -n "$tmp" > Launcher.xcodeproj/project.pbxproj
-
       - name: Install the Apple certificate and provisioning profile
         env:
           BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
@@ -76,9 +72,9 @@ jobs:
 
       - name: Codesign with Developer ID
         run: |
-          xcrun codesign --options runtime --force --verbose --timestamp --entitlements "Launcher/Launcher.entitlements" --sign "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" to-be-signed/Launcher.app/Contents/Frameworks/Sparkle.framework/Versions/A/Resources/Autoupdate.app/Contents/MacOS/fileop
-          xcrun codesign --options runtime --force --verbose --timestamp --entitlements "Launcher/Launcher.entitlements" --sign "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" to-be-signed/Launcher.app/Contents/Frameworks/Sparkle.framework/Versions/A/Resources/Autoupdate.app
-          xcrun codesign --options runtime --force --verbose --timestamp --entitlements "Launcher/Launcher.entitlements" --sign "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" to-be-signed/Launcher.app/Contents/Frameworks/Sparkle.framework
+          xcrun codesign --options runtime --force --verbose --timestamp --entitlements "Launcher/Launcher.entitlements" --sign "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" to-be-signed/CodeLauncher.app/Contents/Frameworks/Sparkle.framework/Versions/A/Resources/Autoupdate.app/Contents/MacOS/fileop
+          xcrun codesign --options runtime --force --verbose --timestamp --entitlements "Launcher/Launcher.entitlements" --sign "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" to-be-signed/CodeLauncher.app/Contents/Frameworks/Sparkle.framework/Versions/A/Resources/Autoupdate.app
+          xcrun codesign --options runtime --force --verbose --timestamp --entitlements "Launcher/Launcher.entitlements" --sign "Developer ID Application: ${{ secrets.DEVELOPER_NAME }}" to-be-signed/CodeLauncher.app/Contents/Frameworks/Sparkle.framework
 
       - name: Prepare for Notarization
         run: |
