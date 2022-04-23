@@ -138,6 +138,7 @@
 		2A214783275081D8000272B8 /* CLTaskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLTaskView.swift; sourceTree = "<group>"; };
 		2A240E62275CCA200003F816 /* CLTaskItemView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLTaskItemView.swift; sourceTree = "<group>"; };
 		2A240E64275CD1280003F816 /* TaskPropertyLabelStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskPropertyLabelStyle.swift; sourceTree = "<group>"; };
+		2A2A182128146451003E35FD /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
 		2A315EF5280E99D40019E768 /* CLConsoleViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLConsoleViewModel.swift; sourceTree = "<group>"; };
 		2A4439482765B9F800F630FF /* CLProjectAvatarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLProjectAvatarView.swift; sourceTree = "<group>"; };
 		2A6057B22748B838001A68C7 /* CLCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CLCommand.swift; path = launcher/Helper/CLCommand.swift; sourceTree = SOURCE_ROOT; };
@@ -205,6 +206,7 @@
 			isa = PBXGroup;
 			children = (
 				6A43B3C727950DF900FF1729 /* Launcher.xcconfig */,
+				2A2A182128146451003E35FD /* Release.xcconfig */,
 				2AACCCDC27571CC500AC12F5 /* Helper-Info.plist */,
 				2A6057C0274A4566001A68C7 /* Info.plist */,
 				2A64E7FF27463E6C00EB85C8 /* Launcher */,
@@ -631,7 +633,7 @@
 		};
 		2A64E82127463E6E00EB85C8 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 6A43B3C727950DF900FF1729 /* Launcher.xcconfig */;
+			baseConfigurationReference = 2A2A182128146451003E35FD /* Release.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -707,7 +709,7 @@
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
-					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 11.3;
 				MARKETING_VERSION = 1.0.5;
@@ -726,11 +728,12 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Launcher/Launcher.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 110;
 				DEVELOPMENT_ASSET_PATHS = "\"Launcher/Preview Content\"";
+				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -743,7 +746,7 @@
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
-					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 11.3;
 				MARKETING_VERSION = 1.0.5;
@@ -794,10 +797,11 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "Launcher Helper/Code_Launcher_Helper.entitlements";
-				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 110;
+				DEVELOPMENT_TEAM = "";
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Helper-Info.plist";
