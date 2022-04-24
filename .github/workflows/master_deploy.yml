@@ -110,11 +110,11 @@ jobs:
           out_dir: codelauncher/${{ env.RELEASE_VERSION }}
 
       - name: Prepare for Sparkle Appcast
+        env:
+          WORKPLACE: ${{ github.workspace }}
         run: |
-          "${{ secrets.SPARKLE_GENERATE_KEY_PATH }}" -f "${{ secrets.SPARKLE_KEY_PATH }}" > /dev/null
-          mkdir -p Release & cp CodeLauncher.zip Release/
-          security unlock-keychain -p ${{ secrets.KEYCHAIN_PASSWORD }} $RUNNER_TEMP/app-signing.keychain-db
-          "${{ secrets.SPARKLE_GENERATE_APPCAST_PATH }}" --download-url-prefix "https://opensource.v2ex.pro/codelauncher/${{ env.RELEASE_VERSION }}/CodeLauncher.zip" Release > /dev/null
+          mkdir -p Release & cp Z.zip Release/
+          ${{ secrets.SPARKLE_GENERATE }} $WORKPLACE/Release ${{ env.RELEASE_VERSION }}
 
       - name: Upload Sparkle Appcast
         uses: BetaHuhn/do-spaces-action@v2
