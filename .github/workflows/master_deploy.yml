@@ -113,7 +113,7 @@ jobs:
         env:
           WORKPLACE: ${{ github.workspace }}
         run: |
-          mkdir -p Release & cp Z.zip Release/
+          mkdir -p Release & cp CodeLauncher.zip Release/
           ${{ secrets.SPARKLE_GENERATE }} $WORKPLACE/Release ${{ env.RELEASE_VERSION }}
 
       - name: Upload Sparkle Appcast
