@@ -117,10 +117,10 @@ struct CLConsoleView: View {
 
     @AppStorage(CLDefaults.settingsAppearanceKey) var appearance: Appearance = .dark
 
-    @ObservedObject private var viewModel: CLConsoleViewModel
+    @StateObject private var viewModel: CLConsoleViewModel
 
     init(withProject project: CLProject) {
-        _viewModel = ObservedObject(wrappedValue: CLConsoleViewModel.shared)
+        _viewModel = StateObject(wrappedValue: CLConsoleViewModel.shared)
         self.project = project
     }
 
