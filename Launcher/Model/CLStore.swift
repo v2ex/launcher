@@ -37,6 +37,28 @@ private actor CLDataStore {
         }
         return []
     }
+
+    func loadExistingTasks(byTaskPath taskPath: URL) throws -> [CLTaskPID] {
+        let decoder = JSONDecoder()
+        let data = try Data(contentsOf: taskPath)
+        return try decoder.decode([CLTaskPID].self, from: data)
+    }
+
+    func updateExistingTasks(byTaskPath taskPath: URL, taskProcesses: [String: Process]) {
+        var taskPIDs: [CLTaskPID] = []
+        for uuid in taskProcesses.keys {
+            guard let p = taskProcesses[uuid], let id = UUID(uuidString: uuid) else { continue }
+            taskPIDs.append(CLTaskPID(id: id, identifier: p.processIdentifier))
+        }
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .withoutEscapingSlashes
+        do {
+            let data = try encoder.encode(taskPIDs)
+            try data.write(to: taskPath, options: .atomic)
+        } catch {
+            debugPrint("failed to update task pids: \(error)")
+        }
+    }
 }
 
 
@@ -103,8 +125,10 @@ class CLStore: ObservableObject {
 
     @Published var taskProcesses: [String: Process] = [:] {
         didSet {
-            DispatchQueue.global(qos: .utility).async {
-                self._updateExistingTasks()
+            let taskPath = CLTaskManager.shared.taskPath()
+            let taskProcessesToUpdate = taskProcesses
+            Task.detached {
+                await self.store.updateExistingTasks(byTaskPath: taskPath, taskProcesses: taskProcessesToUpdate)
             }
 
             DispatchQueue.global(qos: .background).async {
@@ -155,13 +179,18 @@ class CLStore: ObservableObject {
 
     init() {
         debugPrint("CL Store Init.")
-
+        let taskPath = CLTaskManager.shared.taskPath()
         Task.init {
             let p = await self.store.loadProjects()
             await MainActor.run {
                 self.projects = p
             }
-            self._detectExistingTasks()
+            do {
+                let taskPIDs = try await self.store.loadExistingTasks(byTaskPath: taskPath)
+                self._detectExistingTasks(byTaskPIDs: taskPIDs)
+            } catch {
+                debugPrint("failed to load existing tasks: \(error)")
+            }
         }
     }
 
@@ -212,37 +241,11 @@ class CLStore: ObservableObject {
         }
     }
 
-    private func _detectExistingTasks() {
-        debugPrint("detecting tasks...")
-        let taskPath = CLTaskManager.shared.taskPath()
-        let decoder = JSONDecoder()
-        do {
-            let data = try Data(contentsOf: taskPath)
-            let taskPIDs: [CLTaskPID] = try decoder.decode([CLTaskPID].self, from: data)
-            for taskPID in taskPIDs {
-                let cmd = CLCommand(executable: URL(fileURLWithPath: "/bin/kill"), directory: URL(fileURLWithPath: ""), arguments: ["-9", "\(taskPID.identifier)"])
-                runAsyncCommand(command: cmd) { _, _, _ in
-                }
+    private func _detectExistingTasks(byTaskPIDs taskPIDs: [CLTaskPID]) {
+        for taskPID in taskPIDs {
+            let cmd = CLCommand(executable: URL(fileURLWithPath: "/bin/kill"), directory: URL(fileURLWithPath: ""), arguments: ["-9", "\(taskPID.identifier)"])
+            runAsyncCommand(command: cmd) { _, _, _ in
             }
-        } catch {
-            debugPrint("failed to load task pids: \(error)")
-        }
-    }
-
-    private func _updateExistingTasks() {
-        let taskPath = CLTaskManager.shared.taskPath()
-        var taskPIDs: [CLTaskPID] = []
-        for uuid in taskProcesses.keys {
-            guard let p = taskProcesses[uuid], let id = UUID(uuidString: uuid) else { continue }
-            taskPIDs.append(CLTaskPID(id: id, identifier: p.processIdentifier))
-        }
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = .withoutEscapingSlashes
-        do {
-            let data = try encoder.encode(taskPIDs)
-            try data.write(to: taskPath, options: .atomic)
-        } catch {
-            debugPrint("failed to update task pids: \(error)")
         }
     }
 }
