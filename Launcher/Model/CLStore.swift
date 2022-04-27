@@ -10,8 +10,62 @@ import Combine
 import Foundation
 import SwiftUI
 
+
+private actor CLDataStore {
+    func saveProjects(_ projects: [CLProject]) {
+        let databasePath = CLTaskManager.shared.databasePath()
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .withoutEscapingSlashes
+        do {
+            let data = try encoder.encode(projects)
+            try data.write(to: databasePath, options: .atomic)
+        } catch {
+            debugPrint("failed to save tasks: \(error)")
+        }
+    }
+
+    func loadProjects() -> [CLProject] {
+        let databasePath = CLTaskManager.shared.databasePath()
+        let decoder = JSONDecoder()
+        do {
+            let data = try Data(contentsOf: databasePath)
+            return try decoder.decode([CLProject].self, from: data).sorted { a, b in
+                a.created > b.created
+            }
+        } catch {
+            debugPrint("failed to load tasks: \(error).")
+        }
+        return []
+    }
+
+    func loadExistingTasks(byTaskPath taskPath: URL) throws -> [CLTaskPID] {
+        let decoder = JSONDecoder()
+        let data = try Data(contentsOf: taskPath)
+        return try decoder.decode([CLTaskPID].self, from: data)
+    }
+
+    func updateExistingTasks(byTaskPath taskPath: URL, taskProcesses: [String: Process]) {
+        var taskPIDs: [CLTaskPID] = []
+        for uuid in taskProcesses.keys {
+            guard let p = taskProcesses[uuid], let id = UUID(uuidString: uuid) else { continue }
+            taskPIDs.append(CLTaskPID(id: id, identifier: p.processIdentifier))
+        }
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .withoutEscapingSlashes
+        do {
+            let data = try encoder.encode(taskPIDs)
+            try data.write(to: taskPath, options: .atomic)
+        } catch {
+            debugPrint("failed to update task pids: \(error)")
+        }
+    }
+}
+
+
 class CLStore: ObservableObject {
     static let shared: CLStore = .init()
+
+    private let store = CLDataStore()
 
     var envSHELL: String = ""
     var envPATH: String = ""
@@ -20,8 +74,8 @@ class CLStore: ObservableObject {
 
     @Published var projects: [CLProject] = [] {
         didSet {
-            DispatchQueue.global(qos: .background).async {
-                self._saveTasks()
+            Task.detached {
+                await self.store.saveProjects(self.projects)
             }
             if let uuidString = CLDefaults.default.lastActiveProjectUUID, let uuid = UUID(uuidString: uuidString) {
                 DispatchQueue.main.async {
@@ -71,8 +125,10 @@ class CLStore: ObservableObject {
 
     @Published var taskProcesses: [String: Process] = [:] {
         didSet {
-            DispatchQueue.global(qos: .utility).async {
-                self._updateExistingTasks()
+            let taskPath = CLTaskManager.shared.taskPath()
+            let taskProcessesToUpdate = taskProcesses
+            Task.detached {
+                await self.store.updateExistingTasks(byTaskPath: taskPath, taskProcesses: taskProcessesToUpdate)
             }
 
             DispatchQueue.global(qos: .background).async {
@@ -123,13 +179,17 @@ class CLStore: ObservableObject {
 
     init() {
         debugPrint("CL Store Init.")
-        let p = _loadTasks().sorted { a, b in
-            a.created > b.created
-        }
-        DispatchQueue.main.async {
-            self.projects = p
-            DispatchQueue.global(qos: .utility).async {
-                self._detectExistingTasks()
+        let taskPath = CLTaskManager.shared.taskPath()
+        Task.init {
+            let p = await self.store.loadProjects()
+            await MainActor.run {
+                self.projects = p
+            }
+            do {
+                let taskPIDs = try await self.store.loadExistingTasks(byTaskPath: taskPath)
+                CLTaskManager.shared.detectExistingTasks(byTaskPIDs: taskPIDs)
+            } catch {
+                debugPrint("failed to load existing tasks: \(error)")
             }
         }
     }
@@ -169,81 +229,15 @@ class CLStore: ObservableObject {
             return p
         }
 
-        DispatchQueue.global(qos: .background).async {
-            self._saveTasks()
-        }
-
         if let img = CLTaskManager.shared.projectAvatar(projectID: editingProject.id, isEditing: true) {
             CLTaskManager.shared.updateProjectAvatar(image: img)
             CLTaskManager.shared.removeProjectAvatar(projectID: editingProject.id, isEditing: true)
         }
         NotificationCenter.default.post(name: .updateProjectAvatar, object: nil)
-    }
 
-    private func _saveTasks() {
-        let databasePath = CLTaskManager.shared.databasePath()
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = .withoutEscapingSlashes
-        do {
-            let data = try encoder.encode(projects)
-            try data.write(to: databasePath, options: .atomic)
-        } catch {
-            debugPrint("failed to save tasks: \(error)")
-        }
-    }
-
-    private func _loadTasks() -> [CLProject] {
-        let databasePath = CLTaskManager.shared.databasePath()
-        let decoder = JSONDecoder()
-        do {
-            let data = try Data(contentsOf: databasePath)
-            return try decoder.decode([CLProject].self, from: data)
-        } catch {
-            debugPrint("failed to load tasks: \(error), try to reset to default.")
-            if FileManager.default.fileExists(atPath: databasePath.path) {
-                try? FileManager.default.removeItem(at: databasePath)
-                DispatchQueue.global(qos: .utility).async {
-                    DispatchQueue.main.async {
-                        self.projects = self._loadTasks().sorted { a, b in
-                            a.created > b.created
-                        }
-                    }
-                }
-            }
-        }
-        return []
-    }
-
-    private func _detectExistingTasks() {
-        let taskPath = CLTaskManager.shared.taskPath()
-        let decoder = JSONDecoder()
-        do {
-            let data = try Data(contentsOf: taskPath)
-            let taskPIDs: [CLTaskPID] = try decoder.decode([CLTaskPID].self, from: data)
-            for taskPID in taskPIDs {
-                let cmd = CLCommand(executable: URL(fileURLWithPath: "/bin/kill"), directory: URL(fileURLWithPath: ""), arguments: ["-9", "\(taskPID.identifier)"])
-                runAsyncCommand(command: cmd) { _, _, _ in
-                }
-            }
-        } catch {
-            debugPrint("failed to load task pids: \(error)")
-        }
-    }
-
-    private func _updateExistingTasks() {
-        let taskPath = CLTaskManager.shared.taskPath()
-        var taskPIDs: [CLTaskPID] = []
-        for uuid in taskProcesses.keys {
-            guard let p = taskProcesses[uuid], let id = UUID(uuidString: uuid) else { continue }
-            taskPIDs.append(CLTaskPID(id: id, identifier: p.processIdentifier))
-        }
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = .withoutEscapingSlashes
-        do {
-            let data = try encoder.encode(taskPIDs)
-            try data.write(to: taskPath, options: .atomic)
-        } catch {
-            debugPrint("failed to update task pids: \(error)")
+        let projectsToSave = projects
+        Task.detached {
+            await self.store.saveProjects(projectsToSave)
         }
     }
 }

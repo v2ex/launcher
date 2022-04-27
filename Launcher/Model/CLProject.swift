@@ -61,7 +61,7 @@ struct CLProject: Codable, Hashable, Identifiable {
         let a: Int64 = abs(parts.0)
         // let b: Int64 = abs(parts.1)
         let c = Int((a % Int64(31)) % Int64(gs.count))
-        debugPrint("a: \(a) count: \(gs.count) c: \(c)")
+//        debugPrint("a: \(a) count: \(gs.count) c: \(c)")
         let g = gs[c]
         return g
     }
