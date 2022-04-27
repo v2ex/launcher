@@ -187,7 +187,7 @@ class CLStore: ObservableObject {
             }
             do {
                 let taskPIDs = try await self.store.loadExistingTasks(byTaskPath: taskPath)
-                self._detectExistingTasks(byTaskPIDs: taskPIDs)
+                CLTaskManager.shared.detectExistingTasks(byTaskPIDs: taskPIDs)
             } catch {
                 debugPrint("failed to load existing tasks: \(error)")
             }
@@ -238,14 +238,6 @@ class CLStore: ObservableObject {
         let projectsToSave = projects
         Task.detached {
             await self.store.saveProjects(projectsToSave)
-        }
-    }
-
-    private func _detectExistingTasks(byTaskPIDs taskPIDs: [CLTaskPID]) {
-        for taskPID in taskPIDs {
-            let cmd = CLCommand(executable: URL(fileURLWithPath: "/bin/kill"), directory: URL(fileURLWithPath: ""), arguments: ["-9", "\(taskPID.identifier)"])
-            runAsyncCommand(command: cmd) { _, _, _ in
-            }
         }
     }
 }

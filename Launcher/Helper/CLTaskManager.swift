@@ -399,6 +399,14 @@ class CLTaskManager: NSObject {
         }
     }
 
+    func detectExistingTasks(byTaskPIDs taskPIDs: [CLTaskPID]) {
+        for taskPID in taskPIDs {
+            let cmd = CLCommand(executable: URL(fileURLWithPath: "/bin/kill"), directory: URL(fileURLWithPath: ""), arguments: ["-9", "\(taskPID.identifier)"])
+            runAsyncCommand(command: cmd) { _, _, _ in
+            }
+        }
+    }
+
     func sendNotification(forTask task: CLTask, started: Bool, failed: Bool = false) {
         guard CLDefaults.default.settingsUseNotificationForTaskStatus else { return }
 
