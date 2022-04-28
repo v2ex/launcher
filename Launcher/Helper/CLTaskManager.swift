@@ -253,13 +253,15 @@ class CLTaskManager: NSObject {
             if completed {
                 debugPrint("CLTaskManager.startTask: task \(task.executable) completed.")
                 if let p = process {
-                    DispatchQueue.main.sync {
+                    RunLoop.main.perform {
                         CLStore.shared[task.projectID][task.id].lastExitCode = p.terminationStatus
                     }
                     debugPrint("Task \(task.executable) termination status: \(p.terminationStatus)")
                 }
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    CLStore.shared.taskProcesses.removeValue(forKey: task.id.uuidString)
+                    RunLoop.main.perform {
+                        CLStore.shared.taskProcesses.removeValue(forKey: task.id.uuidString)
+                    }
                 }
                 if let p = process {
                     if p.isRunning == false, p.terminationStatus != 0 {
@@ -292,9 +294,14 @@ class CLTaskManager: NSObject {
                             if outputs.count > 0 {
                                 CLConsoleViewModel.shared.projectOutputs.append(contentsOf: outputs)
                             }
+                        }
+
+                        RunLoop.main.perform {
                             if CLStore.shared.taskProcesses[task.id.uuidString] == nil {
                                 CLStore.shared.taskProcesses[task.id.uuidString] = process
-                                self.sendNotification(forTask: task, started: true)
+                                DispatchQueue.global(qos: .background).async {
+                                    self.sendNotification(forTask: task, started: true)
+                                }
                             }
                         }
 
@@ -320,10 +327,12 @@ class CLTaskManager: NSObject {
                         }
                     }
                 } else if output == nil {
-                    DispatchQueue.main.async {
-                        if CLStore.shared.taskProcesses[task.id.uuidString] == nil {
+                    RunLoop.main.perform {
+                        if CLStore.shared.taskProcesses[task.id.uuidString] != nil {
                             CLStore.shared.taskProcesses[task.id.uuidString] = process
-                            self.sendNotification(forTask: task, started: true)
+                            DispatchQueue.global(qos: .background).async {
+                                self.sendNotification(forTask: task, started: true)
+                            }
                         }
                     }
                 }
