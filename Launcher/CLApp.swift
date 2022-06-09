@@ -20,6 +20,7 @@ struct CLApp: App {
                 .environmentObject(store)
                 .frame(minWidth: 700, minHeight: 320)
         }
+        .handlesExternalEvents(matching: Set(arrayLiteral: "*"))
         .commands {
             CommandGroup(replacing: .newItem) {
                 Button {
@@ -87,7 +88,10 @@ struct CLApp: App {
     }
 }
 
-class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
+    
+    private lazy var statusItem: NSStatusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+    
     func applicationWillFinishLaunching(_: Notification) {
         NSWindow.allowsAutomaticWindowTabbing = false
         UserDefaults.standard.set(false, forKey: "NSFullScreenMenuItemEverywhere")
@@ -102,12 +106,15 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         let repeatAction = UNNotificationAction(identifier: String.taskCompleteActionRepeatIdentifier, title: "Repeat", options: [.destructive])
         let category = UNNotificationCategory(identifier: String.taskCompleteIdentifier, actions: [dismissAction, repeatAction], intentIdentifiers: [], hiddenPreviewsBodyPlaceholder: "", options: .customDismissAction)
         UNUserNotificationCenter.current().setNotificationCategories([category])
+        // Stats Bar Menu
+        createMenu()
     }
 
     func applicationWillTerminate(_: Notification) {}
 
     func applicationShouldTerminateAfterLastWindowClosed(_: NSApplication) -> Bool {
-        false
+        NSApp.setActivationPolicy(.accessory)
+        return false
     }
 
     func applicationShouldTerminate(_: NSApplication) -> NSApplication.TerminateReply {
@@ -129,5 +136,41 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
             CLTaskManager.shared.restartTask(byTaskUUID: uuid)
         }
         completionHandler()
+    }
+    
+    func createMenu() {
+        
+        if let button = self.statusItem.button {
+            let image = NSImage(named: "rocket")
+            image?.isTemplate = true
+            button.image = image
+        }
+       
+        let menu = NSMenu()
+        
+        let showMenuItem = NSMenuItem(title: "Show", action: #selector(showMainWindowAction), keyEquivalent: "o")
+        menu.addItem(showMenuItem)
+        
+        menu.addItem(NSMenuItem.separator())
+        
+        let quitMenuItem = NSMenuItem(title: "Quit", action: #selector(quitAction), keyEquivalent: "q")
+        menu.addItem(quitMenuItem)
+        
+        self.statusItem.menu = menu
+        
+        NSApp.setActivationPolicy(.regular)
+    }
+    
+    @objc
+    private func showMainWindowAction() {
+        NSApp.setActivationPolicy(.regular)
+        if let url = URL(string: "CodeLauncher://*") {
+            NSWorkspace.shared.open(url)
+        }
+    }
+    
+    @objc
+    private func quitAction() {
+        NSApp.terminate(self)
     }
 }
