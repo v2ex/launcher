@@ -88,7 +88,37 @@ class CLTaskManager: NSObject {
         let task = CLTask(id: UUID(), projectID: projectID, created: now, executable: "", directory: currentUserHomePath().path, arguments: "", delay: 0, autoStart: false)
         DispatchQueue.main.async {
             CLStore.shared.currentProjectID = projectID
-            CLStore.shared.editingProject = CLProject(id: projectID, created: now, name: "", description: "", tasks: [task], autoStart: false)
+            CLStore.shared.editingProject = CLProject(id: projectID,
+                                                      created: now,
+                                                      name: "",
+                                                      description: "",
+                                                      tasks: [task],
+                                                      autoStart: false)
+            CLStore.shared.isEditingProject = true
+        }
+    }
+    
+    /// Duplication project, just for testing
+    func duplicateProject(project: CLProject) {
+        guard let task = project.tasks.first else { return }
+        let projectID = UUID()
+        let now = Date()
+        let duplicationTask = CLTask(id: UUID(),
+                                     projectID: projectID,
+                                     created: now,
+                                     executable: task.executable,
+                                     directory: task.directory,
+                                     arguments: task.arguments,
+                                     delay: task.delay,
+                                     autoStart: task.autoStart)
+        DispatchQueue.main.async {
+            CLStore.shared.currentProjectID = projectID
+            CLStore.shared.editingProject = CLProject(id: projectID,
+                                                      created: now,
+                                                      name: project.name,
+                                                      description: project.description,
+                                                      tasks: [duplicationTask],
+                                                      autoStart: project.autoStart)
             CLStore.shared.isEditingProject = true
         }
     }
