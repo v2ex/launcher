@@ -29,9 +29,7 @@ private actor CLDataStore {
         let decoder = JSONDecoder()
         do {
             let data = try Data(contentsOf: databasePath)
-            return try decoder.decode([CLProject].self, from: data).sorted { a, b in
-                a.created > b.created
-            }
+            return try decoder.decode([CLProject].self, from: data)
         } catch {
             debugPrint("failed to load tasks: \(error).")
         }
@@ -235,6 +233,14 @@ class CLStore: ObservableObject {
         }
         NotificationCenter.default.post(name: .updateProjectAvatar, object: nil)
 
+        let projectsToSave = projects
+        Task.detached {
+            await self.store.saveProjects(projectsToSave)
+        }
+    }
+    
+    func moveProject(fromOffsets: IndexSet, toOffset: Int) {
+        self.projects.move(fromOffsets: fromOffsets, toOffset: toOffset)
         let projectsToSave = projects
         Task.detached {
             await self.store.saveProjects(projectsToSave)

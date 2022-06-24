@@ -19,7 +19,13 @@ struct CLSidebarOptionMenuView: View {
             } label: {
                 Text("Edit")
             }
-
+            #if DEBUG
+            Button {
+                CLTaskManager.shared.duplicateProject(project: project)
+            } label: {
+                Text("Duplicate")
+            }
+            #endif
             Button {
                 CLTaskManager.shared.exportProject(project: project)
             } label: {

@@ -108,7 +108,7 @@ struct CLProjectView: View {
 
                 Button {
                     if isCreatingProject {
-                        store.projects.append(store.editingProject)
+                        store.projects.insert(store.editingProject, at: 0)
                     } else {
                         store.saveProject(project: store.editingProject)
                     }
