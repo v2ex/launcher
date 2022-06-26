@@ -10,9 +10,29 @@ import Combine
 import Foundation
 import SwiftUI
 
+enum StoreError: Error, LocalizedError {
+    case saveProjectError
+    case loadProjectError
+    case updatePorjectError
+    case saveImageError
+    
+    var errorDescription: String? {
+        switch self {
+        case .saveProjectError:
+            return NSLocalizedString("Failed to save tasks.", comment: "")
+        case .loadProjectError:
+            return NSLocalizedString("Failed to load tasks.", comment: "")
+        case .updatePorjectError:
+            return NSLocalizedString("Failed to update tasks.", comment: "")
+        case .saveImageError:
+            return NSLocalizedString("Image Save Error.", comment: "")
+        }
+    }
+}
+
 
 private actor CLDataStore {
-    func saveProjects(_ projects: [CLProject]) {
+    func saveProjects(_ projects: [CLProject]) throws {
         let databasePath = CLTaskManager.shared.databasePath()
         let encoder = JSONEncoder()
         encoder.outputFormatting = .withoutEscapingSlashes
@@ -21,6 +41,7 @@ private actor CLDataStore {
             try data.write(to: databasePath, options: .atomic)
         } catch {
             debugPrint("failed to save tasks: \(error)")
+            throw StoreError.saveProjectError
         }
     }
 
@@ -75,7 +96,7 @@ class CLStore: ObservableObject {
     @Published var projects: [CLProject] = [] {
         didSet {
             Task.detached {
-                await self.store.saveProjects(self.projects)
+                try await self.store.saveProjects(self.projects)
             }
             if let uuidString = CLDefaults.default.lastActiveProjectUUID, let uuid = UUID(uuidString: uuidString) {
                 DispatchQueue.main.async {
@@ -215,7 +236,7 @@ class CLStore: ObservableObject {
         }.first
     }
 
-    func saveProject(project: CLProject) {
+    func saveProject(project: CLProject) throws {
         if self[project.id].tasks.count != project.tasks.count {
             DispatchQueue.main.async {
                 self.selectedTaskIndex = -1
@@ -230,22 +251,22 @@ class CLStore: ObservableObject {
         }
 
         if let img = CLTaskManager.shared.projectAvatar(projectID: editingProject.id, isEditing: true) {
-            CLTaskManager.shared.updateProjectAvatar(image: img)
+            try CLTaskManager.shared.updateProjectAvatar(image: img)
             CLTaskManager.shared.removeProjectAvatar(projectID: editingProject.id, isEditing: true)
         }
         NotificationCenter.default.post(name: .updateProjectAvatar, object: nil)
 
         let projectsToSave = projects
         Task.detached {
-            await self.store.saveProjects(projectsToSave)
+            try await self.store.saveProjects(projectsToSave)
         }
     }
     
-    func moveProject(fromOffsets: IndexSet, toOffset: Int) {
+    func moveProject(fromOffsets: IndexSet, toOffset: Int) throws {
         self.projects.move(fromOffsets: fromOffsets, toOffset: toOffset)
         let projectsToSave = projects
         Task.detached {
-            await self.store.saveProjects(projectsToSave)
+            try await self.store.saveProjects(projectsToSave)
         }
     }
 }

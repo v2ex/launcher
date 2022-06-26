@@ -12,6 +12,8 @@ struct CLSidebarView: View {
     @EnvironmentObject private var store: CLStore
 
     @State private var project: CLProject!
+    @State private var showErrorAlert = false
+    @State private var error: Error?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -72,8 +74,19 @@ struct CLSidebarView: View {
                     }
                 }
                 .onMove { indices, destination in
-                    store.moveProject(fromOffsets: indices, toOffset: destination)
+                    do {
+                        try store.moveProject(fromOffsets: indices, toOffset: destination)
+                    } catch {
+                        self.showErrorAlert = true
+                        self.error = error
+                    }
                 }
+                
+            }.alert(isPresented: $showErrorAlert) {
+                Alert(
+                    title: Text("Error"),
+                    message: Text(self.error?.localizedDescription ?? "")
+                )
             }
 
             HStack {

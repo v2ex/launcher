@@ -14,7 +14,9 @@ struct CLProjectAvatarView: View {
 
     @State private var updatedAvatarImage: NSImage!
     @State private var isChoosingAvatarImage: Bool = false
-
+    @State private var showErrorAlert = false
+    @State private var error: Error?
+    
     var body: some View {
         VStack {
             if updatedAvatarImage == nil {
@@ -39,9 +41,14 @@ struct CLProjectAvatarView: View {
         .fileImporter(isPresented: $isChoosingAvatarImage, allowedContentTypes: [.png, .jpeg, .tiff], allowsMultipleSelection: false) { result in
             if let urls = try? result.get(), let url = urls.first, let img = NSImage(contentsOf: url) {
                 let targetImage = CLTaskManager.shared.resizedProjectAvatarImage(image: img)
-                CLTaskManager.shared.updateProjectAvatar(image: targetImage, isEditing: true)
-                DispatchQueue.main.async {
-                    self.updatedAvatarImage = targetImage
+                do {
+                    try CLTaskManager.shared.updateProjectAvatar(image: targetImage, isEditing: true)
+                    DispatchQueue.main.async {
+                        self.updatedAvatarImage = targetImage
+                    }
+                } catch {
+                    self.showErrorAlert = true
+                    self.error = error
                 }
             }
         }
@@ -85,6 +92,16 @@ struct CLProjectAvatarView: View {
                 }
             }
         }
+        .alert(isPresented: $showErrorAlert) {
+            Alert(
+                title: Text("Error"),
+                message: Text(self.error?.localizedDescription ?? "")
+            )
+        }
+    }
+    
+    private func updateProjectAvatar( _ targetImage: NSImage) {
+        
     }
 }
 

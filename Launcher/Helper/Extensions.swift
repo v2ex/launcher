@@ -182,17 +182,13 @@ extension NSImage {
             return nil
         }
     }
-
-    func imageSave(_ filepath: URL) {
-        autoreleasepool {
+    
+    func imageSave(_ filepath: URL) throws {
+        try autoreleasepool {
             guard let imageData = self.tiffRepresentation else { return }
             let imageRep = NSBitmapImageRep(data: imageData)
             let data = imageRep?.representation(using: .png, properties: [:])
-            do {
-                try data?.write(to: filepath, options: .atomic)
-            } catch {
-                debugPrint("[Image Save Error] \(error)")
-            }
+            try data?.write(to: filepath, options: .atomic)
         }
     }
 }

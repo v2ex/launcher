@@ -259,11 +259,11 @@ class CLTaskManager: NSObject {
         }
         return nil
     }
-
-    func updateProjectAvatar(image: NSImage, isEditing: Bool = false) {
+    
+    func updateProjectAvatar(image: NSImage, isEditing: Bool = false) throws {
         let imageURL = avatarPath(forProjectID: CLStore.shared.editingProject.id, isEditing: isEditing)
         let targetImage = resizedProjectAvatarImage(image: image)
-        targetImage.imageSave(imageURL)
+        try targetImage.imageSave(imageURL)
     }
 
     func removeProjectAvatar(projectID id: UUID, isEditing: Bool = false) {
