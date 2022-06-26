@@ -9,7 +9,9 @@ import SwiftUI
 
 struct CLSidebarOptionMenuView: View {
     @EnvironmentObject private var store: CLStore
-
+    @State private var showErrorAlert = false
+    @State private var error: Error?
+    
     var project: CLProject
 
     var body: some View {
@@ -27,7 +29,14 @@ struct CLSidebarOptionMenuView: View {
             }
             #endif
             Button {
-                CLTaskManager.shared.exportProject(project: project)
+                Task {
+                    do {
+                        try await CLTaskManager.shared.exportProject(project: project)
+                    } catch {
+                        self.showErrorAlert = true
+                        self.error = error
+                    }
+                }
             } label: {
                 Text("Export")
             }
@@ -39,6 +48,11 @@ struct CLSidebarOptionMenuView: View {
             } label: {
                 Text("Delete")
             }
+        }.alert(isPresented: $showErrorAlert) {
+            Alert(
+                title: Text("Error"),
+                message: Text(error?.localizedDescription ?? "")
+            )
         }
     }
 }
