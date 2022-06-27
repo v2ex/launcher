@@ -11,7 +11,6 @@ import UserNotifications
 
 @main
 struct CLApp: App {
-    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject var store = CLStore.shared
 
     var body: some Scene {
@@ -19,8 +18,15 @@ struct CLApp: App {
             CLMainView()
                 .environmentObject(store)
                 .frame(minWidth: 700, minHeight: 320)
+                .handlesExternalEvents(preferring: Set(arrayLiteral: String.mainWindowScheme), allowing: Set(arrayLiteral: String.mainWindowScheme))
+                .onOpenURL { u in
+                    if NSApp.activationPolicy() == .regular && CLDefaults.default.settingsMenuBarMode {
+                        NSApp.setActivationPolicy(.accessory)
+                        NSApplication.shared.activate(ignoringOtherApps: true)
+                    }
+                }
         }
-        .handlesExternalEvents(matching: Set(arrayLiteral: "*"))
+        .handlesExternalEvents(matching: Set(arrayLiteral: String.mainWindowScheme))
         .commands {
             CommandGroup(replacing: .newItem) {
                 Button {
@@ -88,10 +94,12 @@ struct CLApp: App {
     }
 }
 
+
 final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
-    
-    private lazy var statusItem: NSStatusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-    
+    @Environment(\.openURL) private var openURL
+
+    private var menuletItem: NSStatusItem?
+
     func applicationWillFinishLaunching(_: Notification) {
         NSWindow.allowsAutomaticWindowTabbing = false
         UserDefaults.standard.set(false, forKey: "NSFullScreenMenuItemEverywhere")
@@ -106,14 +114,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         let repeatAction = UNNotificationAction(identifier: String.taskCompleteActionRepeatIdentifier, title: "Repeat", options: [.destructive])
         let category = UNNotificationCategory(identifier: String.taskCompleteIdentifier, actions: [dismissAction, repeatAction], intentIdentifiers: [], hiddenPreviewsBodyPlaceholder: "", options: .customDismissAction)
         UNUserNotificationCenter.current().setNotificationCategories([category])
-        // Stats Bar Menu
-        createMenu()
+
+        createMenulet()
     }
 
     func applicationWillTerminate(_: Notification) {}
 
     func applicationShouldTerminateAfterLastWindowClosed(_: NSApplication) -> Bool {
-        NSApp.setActivationPolicy(.accessory)
         return false
     }
 
@@ -127,6 +134,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         return .terminateLater
     }
 
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        return true
+    }
+
+    // MARK: - Notification -
     func userNotificationCenter(_: UNUserNotificationCenter, willPresent _: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
         completionHandler([.banner])
     }
@@ -136,39 +148,65 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             CLTaskManager.shared.restartTask(byTaskUUID: uuid)
         }
         completionHandler()
-    }
-    
-    func createMenu() {
-        
-        if let button = self.statusItem.button {
-            let image = NSImage(named: "rocket")
-            image?.isTemplate = true
-            button.image = image
+        if NSApp.activationPolicy() == .accessory {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                self?.updateMenuletActivationPolicy()
+            }
         }
-       
-        let menu = NSMenu()
-        
-        let showMenuItem = NSMenuItem(title: "Show", action: #selector(showMainWindowAction), keyEquivalent: "o")
-        menu.addItem(showMenuItem)
-        
-        menu.addItem(NSMenuItem.separator())
-        
-        let quitMenuItem = NSMenuItem(title: "Quit", action: #selector(quitAction), keyEquivalent: "q")
-        menu.addItem(quitMenuItem)
-        
-        self.statusItem.menu = menu
-        
-        NSApp.setActivationPolicy(.regular)
     }
-    
+
+    // MARK: - Menulet -
+    func createMenulet() {
+        guard menuletItem == nil, CLDefaults.default.settingsShowMenuBarIcon else { return }
+        menuletItem = NSStatusBar.system.statusItem(withLength: CGFloat(NSStatusItem.variableLength))
+
+        let image = NSImage(named: "rocket")
+        image?.isTemplate = true
+        menuletItem?.button?.image = image
+
+        let menu = NSMenu()
+
+        let showMenuItem = NSMenuItem(title: "Show", action: #selector(showMainWindowAction), keyEquivalent: "")
+        menu.addItem(showMenuItem)
+
+        let preferencesItem = NSMenuItem(title: "Preferences", action: #selector(preferencesAction), keyEquivalent: "")
+        menu.addItem(preferencesItem)
+
+        menu.addItem(NSMenuItem.separator())
+        let quitMenuItem = NSMenuItem(title: "Quit", action: #selector(quitAction), keyEquivalent: "")
+        menu.addItem(quitMenuItem)
+
+        menuletItem?.menu = menu
+
+        updateMenuletActivationPolicy()
+    }
+
+    func removeMenulet() {
+        if let item = menuletItem {
+            NSStatusBar.system.removeStatusItem(item)
+        }
+        menuletItem = nil
+    }
+
+    func updateMenuletActivationPolicy() {
+        NSApp.setActivationPolicy(CLDefaults.default.settingsMenuBarMode ? .accessory : .regular)
+    }
+
     @objc
     private func showMainWindowAction() {
-        NSApp.setActivationPolicy(.regular)
-        if let url = URL(string: "CodeLauncher://*") {
-            NSWorkspace.shared.open(url)
+        if let url = URL(string: "CodeLauncher://" + String.mainWindowScheme) {
+            openURL(url)
         }
     }
-    
+
+    @objc
+    private func preferencesAction() {
+        NSApp.sendAction(Selector(("showPreferencesWindow:")), to: nil, from: nil)
+        if !NSApplication.shared.isActive {
+            NSApplication.shared.activate(ignoringOtherApps: true)
+        }
+    }
+
     @objc
     private func quitAction() {
         NSApp.terminate(self)

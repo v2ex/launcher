@@ -68,6 +68,8 @@ class CLStore: ObservableObject {
     var envSHELL: String = ""
     var envPATH: String = ""
 
+    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    
     @Published var currentViewingTaskID: UUID?
 
     @Published var projects: [CLProject] = [] {
