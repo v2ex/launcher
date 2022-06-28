@@ -16,7 +16,7 @@ struct CLSidebarView: View {
     var body: some View {
         VStack(spacing: 0) {
             List {
-                ForEach(store.projects, id:\.id) { p in
+                ForEach(store.projects, id: \.id) { p in
                     HStack(spacing: 6) {
                         CLProjectAvatarView(project: p, highlight: store.currentProjectID == p.id)
                         VStack {

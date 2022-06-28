@@ -95,7 +95,7 @@ struct CLApp: App {
 }
 
 
-final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
+class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
     @Environment(\.openURL) private var openURL
 
     private var menuletItem: NSStatusItem?
@@ -149,7 +149,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         }
         completionHandler()
         if NSApp.activationPolicy() == .accessory {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
                 self?.updateMenuletActivationPolicy()
             }
         }
@@ -166,8 +166,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
 
         let menu = NSMenu()
 
-        let showMenuItem = NSMenuItem(title: "Show", action: #selector(showMainWindowAction), keyEquivalent: "")
+        let showMenuItem = NSMenuItem(title: "Open CodeLauncher", action: #selector(showMainWindowAction), keyEquivalent: "")
         menu.addItem(showMenuItem)
+
+        let projectsMenuItem = NSMenuItem(title: "Projects", action: nil, keyEquivalent: "")
+        menu.addItem(projectsMenuItem)
 
         let preferencesItem = NSMenuItem(title: "Preferences", action: #selector(preferencesAction), keyEquivalent: "")
         menu.addItem(preferencesItem)
@@ -175,6 +178,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         menu.addItem(NSMenuItem.separator())
         let quitMenuItem = NSMenuItem(title: "Quit", action: #selector(quitAction), keyEquivalent: "")
         menu.addItem(quitMenuItem)
+        menu.delegate = self
 
         menuletItem?.menu = menu
 
@@ -210,5 +214,47 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     @objc
     private func quitAction() {
         NSApp.terminate(self)
+    }
+}
+
+
+extension AppDelegate: NSMenuDelegate {
+    func menuWillOpen(_ menu: NSMenu) {
+        let projects = CLStore.shared.projects
+        let projectMenuItem = menu.item(withTitle: "Projects")
+        if projects.count > 0 {
+            let projectMenu = NSMenu()
+            for p in projects {
+                let projectIsRunning = CLStore.shared.activeProjects.filter { projectID in
+                    projectID == p.id.uuidString
+                }.count > 0
+                let item = NSMenuItem()
+                item.title = p.name
+                let itemSubmenu = NSMenu()
+                let subItem = NSMenuItem()
+                subItem.title = projectIsRunning ? "Stop Project" : "Start Project"
+                subItem.target = self
+                subItem.representedObject = p
+                subItem.action = projectIsRunning ? #selector(stopProject(sender:)) : #selector(startProject(sender:))
+                itemSubmenu.addItem(subItem)
+                item.submenu = itemSubmenu
+                projectMenu.addItem(item)
+            }
+            projectMenuItem?.submenu = projectMenu
+        } else {
+            projectMenuItem?.submenu?.removeAllItems()
+        }
+    }
+
+    @objc
+    private func startProject(sender: NSMenuItem) {
+        guard let project = sender.representedObject as? CLProject else { return }
+        CLTaskManager.shared.startTasks(fromProject: project)
+    }
+
+    @objc
+    private func stopProject(sender: NSMenuItem) {
+        guard let project = sender.representedObject as? CLProject else { return }
+        CLTaskManager.shared.stopTasks(fromProject: project)
     }
 }
