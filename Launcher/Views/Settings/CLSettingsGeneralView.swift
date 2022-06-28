@@ -35,8 +35,6 @@ struct CLSettingsGeneralView: View {
 
     @AppStorage(CLDefaults.settingsAppearanceKey) var selectedAppearance: Appearance = .dark
 
-//    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-
     var body: some View {
         VStack(spacing: 20) {
             GroupBox {
@@ -57,6 +55,8 @@ struct CLSettingsGeneralView: View {
             } label: {
                 Label("Appearance Options", systemImage: "note.text")
                     .font(.body)
+                    .padding(.top, 12)
+                    .padding(.bottom, 6)
             }
 
             GroupBox {
@@ -98,6 +98,7 @@ struct CLSettingsGeneralView: View {
             } label: {
                 Label("Launch Options", systemImage: "gearshape.2")
                     .font(.body)
+                    .padding(.bottom, 6)
             }
 
             GroupBox {
@@ -117,6 +118,7 @@ struct CLSettingsGeneralView: View {
             } label: {
                 Label("Task Options", systemImage: "memorychip")
                     .font(.body)
+                    .padding(.bottom, 6)
             }
 
             Spacer()
