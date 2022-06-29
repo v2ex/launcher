@@ -21,8 +21,7 @@ struct CLApp: App {
                 .handlesExternalEvents(preferring: Set(arrayLiteral: String.mainWindowScheme), allowing: Set(arrayLiteral: String.mainWindowScheme))
                 .onOpenURL { u in
                     if NSApp.activationPolicy() == .regular && CLDefaults.default.settingsMenuBarMode {
-                        NSApp.setActivationPolicy(.accessory)
-                        NSApplication.shared.activate(ignoringOtherApps: true)
+                        let _ = NSApp.setActivationPolicy(.accessory)
                     }
                 }
         }
@@ -95,15 +94,10 @@ struct CLApp: App {
 }
 
 
-class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
+class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate, NSMenuDelegate {
     @Environment(\.openURL) private var openURL
 
     private var menuletItem: NSStatusItem?
-    @AppStorage(CLDefaults.settingsMenuBarModeKey) private var menuBarMode =
-    CLDefaults.default.settingsMenuBarMode
-
-    @AppStorage(CLDefaults.settingsShowMenuBarIconKey) private var showMenuBarIcon =
-    CLDefaults.default.settingsShowMenuBarIcon
 
     func applicationWillFinishLaunching(_: Notification) {
         NSWindow.allowsAutomaticWindowTabbing = false
@@ -178,17 +172,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         menu.addItem(projectsMenuItem)
 
         let preferencesMenuItem = NSMenuItem(title: "Preferences", action: nil, keyEquivalent: "")
-        let preferencesSubmenu = NSMenu()
-        preferencesMenuItem.submenu = preferencesSubmenu
-
-        let menuBarIconItem = NSMenuItem(title: "Show Menu Bar Icon", action: #selector(toggleMenuBarIconAction), keyEquivalent: "")
-        menuBarIconItem.state = showMenuBarIcon ? .on : .off
-        preferencesSubmenu.addItem(menuBarIconItem)
-
-        let menuBarModeItem = NSMenuItem(title: "Run in Menu Bar Only", action: #selector(toggleMenuBarModeAction), keyEquivalent: "")
-        menuBarModeItem.state = menuBarMode ? .on : .off
-        preferencesSubmenu.addItem(menuBarModeItem)
-
         menu.addItem(preferencesMenuItem)
 
         menu.addItem(NSMenuItem.separator())
@@ -209,7 +192,22 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
     }
 
     func updateMenuletActivationPolicy() {
-        NSApp.setActivationPolicy(menuBarMode ? .accessory : .regular)
+        NSApp.setActivationPolicy(CLDefaults.default.settingsMenuBarMode ? .accessory : .regular)
+        if NSApp.activationPolicy() == .regular {
+            NSApplication.shared.activate(ignoringOtherApps: true)
+        }
+    }
+
+    @objc
+    private func startProject(sender: NSMenuItem) {
+        guard let project = sender.representedObject as? CLProject else { return }
+        CLTaskManager.shared.startTasks(fromProject: project)
+    }
+
+    @objc
+    private func stopProject(sender: NSMenuItem) {
+        guard let project = sender.representedObject as? CLProject else { return }
+        CLTaskManager.shared.stopTasks(fromProject: project)
     }
 
     @objc
@@ -221,14 +219,17 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
 
     @objc
     private func toggleMenuBarModeAction() {
-        menuBarMode.toggle()
+        CLDefaults.default.settingsMenuBarMode.toggle()
         updateMenuletActivationPolicy()
+        if CLDefaults.default.settingsMenuBarMode && CLDefaults.default.settingsShowMenuBarIcon == false {
+            CLDefaults.default.settingsShowMenuBarIcon = true
+        }
     }
 
     @objc
     private func toggleMenuBarIconAction() {
-        showMenuBarIcon.toggle()
-        if showMenuBarIcon {
+        CLDefaults.default.settingsShowMenuBarIcon.toggle()
+        if CLDefaults.default.settingsShowMenuBarIcon {
             createMenulet()
         } else {
             removeMenulet()
@@ -239,12 +240,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
     private func quitAction() {
         NSApp.terminate(self)
     }
-}
 
-
-extension AppDelegate: NSMenuDelegate {
+    // MARK: - Menu Delegate -
     func menuWillOpen(_ menu: NSMenu) {
         let projects = CLStore.shared.projects
+
         let projectMenuItem = menu.item(withTitle: "Projects")
         if projects.count > 0 {
             let projectMenu = NSMenu()
@@ -271,17 +271,17 @@ extension AppDelegate: NSMenuDelegate {
         } else {
             projectMenuItem?.submenu?.removeAllItems()
         }
-    }
 
-    @objc
-    private func startProject(sender: NSMenuItem) {
-        guard let project = sender.representedObject as? CLProject else { return }
-        CLTaskManager.shared.startTasks(fromProject: project)
-    }
+        let preferencesMenuItem = menu.item(withTitle: "Preferences")
+        let preferencesSubmenu = NSMenu()
+        preferencesMenuItem?.submenu = preferencesSubmenu
 
-    @objc
-    private func stopProject(sender: NSMenuItem) {
-        guard let project = sender.representedObject as? CLProject else { return }
-        CLTaskManager.shared.stopTasks(fromProject: project)
+        let menuBarIconItem = NSMenuItem(title: "Show Menu Bar Icon", action: CLDefaults.default.settingsMenuBarMode ? nil : #selector(toggleMenuBarIconAction), keyEquivalent: "")
+        menuBarIconItem.state = CLDefaults.default.settingsShowMenuBarIcon ? .on : .off
+        preferencesSubmenu.addItem(menuBarIconItem)
+
+        let menuBarModeItem = NSMenuItem(title: "Run in Menu Bar Only", action: #selector(toggleMenuBarModeAction), keyEquivalent: "")
+        menuBarModeItem.state = CLDefaults.default.settingsMenuBarMode ? .on : .off
+        preferencesSubmenu.addItem(menuBarModeItem)
     }
 }
