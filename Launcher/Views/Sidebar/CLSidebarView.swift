@@ -70,7 +70,6 @@ struct CLSidebarView: View {
                         CLSidebarOptionMenuView(project: p)
                             .environmentObject(store)
                     }
-                    .moveDisabled(false)
                 }
                 .onMove { indices, destination in
                     store.moveProject(fromOffsets: indices, toOffset: destination)
