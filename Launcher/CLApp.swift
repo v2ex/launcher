@@ -254,6 +254,9 @@ extension AppDelegate: NSMenuDelegate {
                 }.count > 0
                 let item = NSMenuItem()
                 item.title = p.name
+                item.state = projectIsRunning ? .on : .off
+                item.onStateImage = NSImage(named: NSImage.statusAvailableName)
+                item.offStateImage = NSImage(named: NSImage.statusNoneName)
                 let itemSubmenu = NSMenu()
                 let subItem = NSMenuItem()
                 subItem.title = projectIsRunning ? "Stop Project" : "Start Project"
