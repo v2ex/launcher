@@ -11,6 +11,7 @@ import SwiftUI
 
 extension String {
 
+    static let mainWindowScheme: String = "CodeLauncherMainWindowScheme"
     static let taskCompleteIdentifier: String = "codelauncher.v2ex.task.complete"
     static let taskCompleteActionDismissIdentifier: String = "codelauncher.v2ex.task.dismiss"
     static let taskCompleteActionRepeatIdentifier: String = "codelauncher.v2ex.task.repeat"

@@ -11,7 +11,6 @@ import UserNotifications
 
 @main
 struct CLApp: App {
-    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject var store = CLStore.shared
 
     var body: some Scene {
@@ -19,8 +18,14 @@ struct CLApp: App {
             CLMainView()
                 .environmentObject(store)
                 .frame(minWidth: 700, minHeight: 320)
+                .handlesExternalEvents(preferring: Set(arrayLiteral: String.mainWindowScheme), allowing: Set(arrayLiteral: String.mainWindowScheme))
+                .onOpenURL { u in
+                    if NSApp.activationPolicy() == .regular && CLDefaults.default.settingsMenuBarMode {
+                        let _ = NSApp.setActivationPolicy(.accessory)
+                    }
+                }
         }
-        .handlesExternalEvents(matching: Set(arrayLiteral: "*"))
+        .handlesExternalEvents(matching: Set(arrayLiteral: String.mainWindowScheme))
         .commands {
             CommandGroup(replacing: .newItem) {
                 Button {
@@ -88,10 +93,12 @@ struct CLApp: App {
     }
 }
 
-final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
-    
-    private lazy var statusItem: NSStatusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-    
+
+class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate, NSMenuDelegate {
+    @Environment(\.openURL) private var openURL
+
+    private var menuletItem: NSStatusItem?
+
     func applicationWillFinishLaunching(_: Notification) {
         NSWindow.allowsAutomaticWindowTabbing = false
         UserDefaults.standard.set(false, forKey: "NSFullScreenMenuItemEverywhere")
@@ -106,14 +113,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         let repeatAction = UNNotificationAction(identifier: String.taskCompleteActionRepeatIdentifier, title: "Repeat", options: [.destructive])
         let category = UNNotificationCategory(identifier: String.taskCompleteIdentifier, actions: [dismissAction, repeatAction], intentIdentifiers: [], hiddenPreviewsBodyPlaceholder: "", options: .customDismissAction)
         UNUserNotificationCenter.current().setNotificationCategories([category])
-        // Stats Bar Menu
-        createMenu()
+
+        createMenulet()
     }
 
     func applicationWillTerminate(_: Notification) {}
 
     func applicationShouldTerminateAfterLastWindowClosed(_: NSApplication) -> Bool {
-        NSApp.setActivationPolicy(.accessory)
         return false
     }
 
@@ -127,6 +133,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         return .terminateLater
     }
 
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        return true
+    }
+
+    // MARK: - Notification -
     func userNotificationCenter(_: UNUserNotificationCenter, willPresent _: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
         completionHandler([.banner])
     }
@@ -136,41 +147,141 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
             CLTaskManager.shared.restartTask(byTaskUUID: uuid)
         }
         completionHandler()
-    }
-    
-    func createMenu() {
-        
-        if let button = self.statusItem.button {
-            let image = NSImage(named: "rocket")
-            image?.isTemplate = true
-            button.image = image
+        if NSApp.activationPolicy() == .accessory {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
+                self?.updateMenuletActivationPolicy()
+            }
         }
-       
-        let menu = NSMenu()
-        
-        let showMenuItem = NSMenuItem(title: "Show", action: #selector(showMainWindowAction), keyEquivalent: "o")
-        menu.addItem(showMenuItem)
-        
-        menu.addItem(NSMenuItem.separator())
-        
-        let quitMenuItem = NSMenuItem(title: "Quit", action: #selector(quitAction), keyEquivalent: "q")
-        menu.addItem(quitMenuItem)
-        
-        self.statusItem.menu = menu
-        
-        NSApp.setActivationPolicy(.regular)
     }
-    
+
+    // MARK: - Menulet -
+    func createMenulet() {
+        guard menuletItem == nil, CLDefaults.default.settingsShowMenuBarIcon else { return }
+        menuletItem = NSStatusBar.system.statusItem(withLength: CGFloat(NSStatusItem.variableLength))
+
+        let image = NSImage(named: "rocket")
+        image?.isTemplate = true
+        menuletItem?.button?.image = image
+
+        let menu = NSMenu()
+
+        let showMenuItem = NSMenuItem(title: "Open CodeLauncher", action: #selector(showMainWindowAction), keyEquivalent: "")
+        menu.addItem(showMenuItem)
+
+        let projectsMenuItem = NSMenuItem(title: "Projects", action: nil, keyEquivalent: "")
+        menu.addItem(projectsMenuItem)
+
+        let preferencesMenuItem = NSMenuItem(title: "Preferences", action: nil, keyEquivalent: "")
+        menu.addItem(preferencesMenuItem)
+
+        menu.addItem(NSMenuItem.separator())
+        let quitMenuItem = NSMenuItem(title: "Quit", action: #selector(quitAction), keyEquivalent: "")
+        menu.addItem(quitMenuItem)
+        menu.delegate = self
+
+        menuletItem?.menu = menu
+
+        updateMenuletActivationPolicy()
+    }
+
+    func removeMenulet() {
+        if let item = menuletItem {
+            NSStatusBar.system.removeStatusItem(item)
+        }
+        menuletItem = nil
+    }
+
+    func updateMenuletActivationPolicy() {
+        NSApp.setActivationPolicy(CLDefaults.default.settingsMenuBarMode ? .accessory : .regular)
+        if NSApp.activationPolicy() == .regular {
+            NSApplication.shared.activate(ignoringOtherApps: true)
+        }
+    }
+
+    @objc
+    private func startProject(sender: NSMenuItem) {
+        guard let project = sender.representedObject as? CLProject else { return }
+        CLTaskManager.shared.startTasks(fromProject: project)
+    }
+
+    @objc
+    private func stopProject(sender: NSMenuItem) {
+        guard let project = sender.representedObject as? CLProject else { return }
+        CLTaskManager.shared.stopTasks(fromProject: project)
+    }
+
     @objc
     private func showMainWindowAction() {
-        NSApp.setActivationPolicy(.regular)
-        if let url = URL(string: "CodeLauncher://*") {
-            NSWorkspace.shared.open(url)
+        if let url = URL(string: "CodeLauncher://" + String.mainWindowScheme) {
+            openURL(url)
         }
     }
-    
+
+    @objc
+    private func toggleMenuBarModeAction() {
+        CLDefaults.default.settingsMenuBarMode.toggle()
+        updateMenuletActivationPolicy()
+        if CLDefaults.default.settingsMenuBarMode && CLDefaults.default.settingsShowMenuBarIcon == false {
+            CLDefaults.default.settingsShowMenuBarIcon = true
+        }
+    }
+
+    @objc
+    private func toggleMenuBarIconAction() {
+        CLDefaults.default.settingsShowMenuBarIcon.toggle()
+        if CLDefaults.default.settingsShowMenuBarIcon {
+            createMenulet()
+        } else {
+            removeMenulet()
+        }
+    }
+
     @objc
     private func quitAction() {
         NSApp.terminate(self)
+    }
+
+    // MARK: - Menu Delegate -
+    func menuWillOpen(_ menu: NSMenu) {
+        let projects = CLStore.shared.projects
+
+        let projectMenuItem = menu.item(withTitle: "Projects")
+        if projects.count > 0 {
+            let projectMenu = NSMenu()
+            for p in projects {
+                let projectIsRunning = CLStore.shared.activeProjects.filter { projectID in
+                    projectID == p.id.uuidString
+                }.count > 0
+                let item = NSMenuItem()
+                item.title = p.name
+                item.state = projectIsRunning ? .on : .off
+                item.onStateImage = NSImage(named: NSImage.statusAvailableName)
+                item.offStateImage = NSImage(named: NSImage.statusNoneName)
+                let itemSubmenu = NSMenu()
+                let subItem = NSMenuItem()
+                subItem.title = projectIsRunning ? "Stop Project" : "Start Project"
+                subItem.target = self
+                subItem.representedObject = p
+                subItem.action = projectIsRunning ? #selector(stopProject(sender:)) : #selector(startProject(sender:))
+                itemSubmenu.addItem(subItem)
+                item.submenu = itemSubmenu
+                projectMenu.addItem(item)
+            }
+            projectMenuItem?.submenu = projectMenu
+        } else {
+            projectMenuItem?.submenu?.removeAllItems()
+        }
+
+        let preferencesMenuItem = menu.item(withTitle: "Preferences")
+        let preferencesSubmenu = NSMenu()
+        preferencesMenuItem?.submenu = preferencesSubmenu
+
+        let menuBarIconItem = NSMenuItem(title: "Show Menu Bar Icon", action: CLDefaults.default.settingsMenuBarMode ? nil : #selector(toggleMenuBarIconAction), keyEquivalent: "")
+        menuBarIconItem.state = CLDefaults.default.settingsShowMenuBarIcon ? .on : .off
+        preferencesSubmenu.addItem(menuBarIconItem)
+
+        let menuBarModeItem = NSMenuItem(title: "Run in Menu Bar Only", action: #selector(toggleMenuBarModeAction), keyEquivalent: "")
+        menuBarModeItem.state = CLDefaults.default.settingsMenuBarMode ? .on : .off
+        preferencesSubmenu.addItem(menuBarModeItem)
     }
 }

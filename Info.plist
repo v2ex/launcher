@@ -8,7 +8,7 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
-			<string>pro.v2ex.cl</string>
+			<string>CodeLauncherMainWindowScheme</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>CodeLauncher</string>

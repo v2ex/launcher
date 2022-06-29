@@ -17,7 +17,7 @@ struct CLSettingsView: View {
                     Label("General", systemImage: "gearshape")
                 }
                 .tag(0)
-                .frame(width: 360, height: 240)
+                .frame(width: 400, height: 300)
                 .environmentObject(store)
 
             CLSettingsAdvancedView()

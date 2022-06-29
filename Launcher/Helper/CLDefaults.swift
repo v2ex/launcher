@@ -13,6 +13,14 @@ struct CLDefaults {
     @CLUserDefault(key: settingsLaunchOptionKey, defaultValue: false)
     var settingsLaunchOption
 
+    static let settingsMenuBarModeKey = "CLUserDefaultsMenuBarModeKey"
+    @CLUserDefault(key: settingsMenuBarModeKey, defaultValue: false)
+    var settingsMenuBarMode
+
+    static let settingsShowMenuBarIconKey = "CLUserDefaultsShowMenuBarIconKey"
+    @CLUserDefault(key: settingsShowMenuBarIconKey, defaultValue: true)
+    var settingsShowMenuBarIcon
+
     static let settingsUseNotificationForTaskStatusKey = "CLUserDefaultsUseNotificationForTaskStatusKey"
     @CLUserDefault(key: settingsUseNotificationForTaskStatusKey, defaultValue: true)
     var settingsUseNotificationForTaskStatus
