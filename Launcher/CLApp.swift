@@ -99,6 +99,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
     @Environment(\.openURL) private var openURL
 
     private var menuletItem: NSStatusItem?
+    @AppStorage(CLDefaults.settingsMenuBarModeKey) private var menuBarMode =
+    CLDefaults.default.settingsMenuBarMode
+
+    @AppStorage(CLDefaults.settingsShowMenuBarIconKey) private var showMenuBarIcon =
+    CLDefaults.default.settingsShowMenuBarIcon
 
     func applicationWillFinishLaunching(_: Notification) {
         NSWindow.allowsAutomaticWindowTabbing = false
@@ -172,8 +177,19 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         let projectsMenuItem = NSMenuItem(title: "Projects", action: nil, keyEquivalent: "")
         menu.addItem(projectsMenuItem)
 
-        let preferencesItem = NSMenuItem(title: "Preferences", action: #selector(preferencesAction), keyEquivalent: "")
-        menu.addItem(preferencesItem)
+        let preferencesMenuItem = NSMenuItem(title: "Preferences", action: nil, keyEquivalent: "")
+        let preferencesSubmenu = NSMenu()
+        preferencesMenuItem.submenu = preferencesSubmenu
+
+        let menuBarIconItem = NSMenuItem(title: "Show Menu Bar Icon", action: #selector(toggleMenuBarIconAction), keyEquivalent: "")
+        menuBarIconItem.state = showMenuBarIcon ? .on : .off
+        preferencesSubmenu.addItem(menuBarIconItem)
+
+        let menuBarModeItem = NSMenuItem(title: "Run in Menu Bar Only", action: #selector(toggleMenuBarModeAction), keyEquivalent: "")
+        menuBarModeItem.state = menuBarMode ? .on : .off
+        preferencesSubmenu.addItem(menuBarModeItem)
+
+        menu.addItem(preferencesMenuItem)
 
         menu.addItem(NSMenuItem.separator())
         let quitMenuItem = NSMenuItem(title: "Quit", action: #selector(quitAction), keyEquivalent: "")
@@ -193,7 +209,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
     }
 
     func updateMenuletActivationPolicy() {
-        NSApp.setActivationPolicy(CLDefaults.default.settingsMenuBarMode ? .accessory : .regular)
+        NSApp.setActivationPolicy(menuBarMode ? .accessory : .regular)
     }
 
     @objc
@@ -204,10 +220,18 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
     }
 
     @objc
-    private func preferencesAction() {
-        NSApp.sendAction(Selector(("showPreferencesWindow:")), to: nil, from: nil)
-        if !NSApplication.shared.isActive {
-            NSApplication.shared.activate(ignoringOtherApps: true)
+    private func toggleMenuBarModeAction() {
+        menuBarMode.toggle()
+        updateMenuletActivationPolicy()
+    }
+
+    @objc
+    private func toggleMenuBarIconAction() {
+        showMenuBarIcon.toggle()
+        if showMenuBarIcon {
+            createMenulet()
+        } else {
+            removeMenulet()
         }
     }
 
