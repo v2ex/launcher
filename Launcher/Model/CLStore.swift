@@ -10,7 +10,8 @@ import Combine
 import Foundation
 import SwiftUI
 
-enum StoreError: Error, LocalizedError {
+
+enum CLStoreError: Error, LocalizedError {
     case saveProjectError
     case loadProjectError
     case updatePorjectError
@@ -41,7 +42,7 @@ private actor CLDataStore {
             try data.write(to: databasePath, options: .atomic)
         } catch {
             debugPrint("failed to save tasks: \(error)")
-            throw StoreError.saveProjectError
+            throw CLStoreError.saveProjectError
         }
     }
 
