@@ -10,6 +10,20 @@ import Foundation
 import ServiceManagement
 import UserNotifications
 
+enum TaskManagementError: Error, LocalizedError {
+    case importTaskError
+    case exportTaskError
+    
+    var errorDescription: String? {
+        switch self {
+        case .importTaskError:
+            return NSLocalizedString("Failed to import project.", comment: "")
+        case .exportTaskError:
+            return NSLocalizedString("Failed to export project.", comment: "")
+        }
+    }
+}
+
 class CLTaskManager: NSObject {
     static let shared: CLTaskManager = .init()
 
@@ -163,7 +177,7 @@ class CLTaskManager: NSObject {
         removeProjectAvatar(projectID: project.id)
     }
 
-    func importProject(fromJSONPath path: URL) {
+    func importProject(fromJSONPath path: URL) throws {
         let decoder = JSONDecoder()
         do {
             let data = try Data(contentsOf: path)
@@ -202,25 +216,27 @@ class CLTaskManager: NSObject {
                 CLStore.shared.projects.append(project)
             }
         } catch {
-            debugPrint("failed to import project: \(error)")
+            print("failed to import project: \(error)")
+            throw TaskManagementError.importTaskError
         }
     }
 
-    func exportProject(project: CLProject) {
+    @MainActor
+    func exportProject(project: CLProject) async throws {
         let panel = NSSavePanel()
         let encoder = JSONEncoder()
         encoder.outputFormatting = .withoutEscapingSlashes
         panel.nameFieldLabel = "Export Project"
         panel.nameFieldStringValue = project.name.lowercased().replacingOccurrences(of: " ", with: "-") + ".json"
         panel.canCreateDirectories = true
-        panel.begin { response in
-            if response == NSApplication.ModalResponse.OK, let fileUrl = panel.url {
-                do {
-                    let data = try encoder.encode(project)
-                    try data.write(to: fileUrl)
-                } catch {
-                    debugPrint("failed to export project: \(error).")
-                }
+        let response = await panel.begin()
+        if response == NSApplication.ModalResponse.OK, let fileUrl = panel.url {
+            do {
+                let data = try encoder.encode(project)
+                try data.write(to: fileUrl)
+            } catch {
+                print("failed to export project: \(error).")
+                throw TaskManagementError.exportTaskError
             }
         }
     }
@@ -243,11 +259,11 @@ class CLTaskManager: NSObject {
         }
         return nil
     }
-
-    func updateProjectAvatar(image: NSImage, isEditing: Bool = false) {
+    
+    func updateProjectAvatar(image: NSImage, isEditing: Bool = false) throws {
         let imageURL = avatarPath(forProjectID: CLStore.shared.editingProject.id, isEditing: isEditing)
         let targetImage = resizedProjectAvatarImage(image: image)
-        targetImage.imageSave(imageURL)
+        try targetImage.imageSave(imageURL)
     }
 
     func removeProjectAvatar(projectID id: UUID, isEditing: Bool = false) {

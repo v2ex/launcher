@@ -9,7 +9,9 @@ import SwiftUI
 
 struct CLProjectView: View {
     @EnvironmentObject private var store: CLStore
-
+    @State private var showErrorAlert = false
+    @State private var error: Error?
+    
     var isCreatingProject: Bool = true
 
     var body: some View {
@@ -105,12 +107,17 @@ struct CLProjectView: View {
                 .keyboardShortcut(.cancelAction)
 
                 Spacer()
-
+                
                 Button {
                     if isCreatingProject {
                         store.projects.insert(store.editingProject, at: 0)
                     } else {
-                        store.saveProject(project: store.editingProject)
+                        do {
+                            try store.saveProject(project: store.editingProject)
+                        } catch {
+                            self.showErrorAlert = true
+                            self.error = error
+                        }
                     }
                     store.isEditingProject = false
                 } label: {
@@ -118,6 +125,12 @@ struct CLProjectView: View {
                 }
                 .disabled(store.editingProject.name == "")
                 .keyboardShortcut(.defaultAction)
+                .alert(isPresented: $showErrorAlert) {
+                    Alert(
+                        title: Text("Error"),
+                        message: Text(self.error?.localizedDescription ?? "")
+                    )
+                }
             }
             .padding()
         }

@@ -12,6 +12,8 @@ import UserNotifications
 @main
 struct CLApp: App {
     @StateObject var store = CLStore.shared
+    @State private var showErrorAlert = false
+    @State private var error: Error?
 
     var body: some Scene {
         WindowGroup {
@@ -23,6 +25,12 @@ struct CLApp: App {
                     if NSApp.activationPolicy() == .regular && CLDefaults.default.settingsMenuBarMode {
                         let _ = NSApp.setActivationPolicy(.accessory)
                     }
+                }
+                .alert(isPresented: $showErrorAlert) {
+                    Alert(
+                        title: Text("Error"),
+                        message: Text(error?.localizedDescription ?? "")
+                    )
                 }
         }
         .handlesExternalEvents(matching: Set(arrayLiteral: String.mainWindowScheme))
@@ -57,7 +65,14 @@ struct CLApp: App {
                 .disabled(store.isEditingProject)
 
                 Button {
-                    CLTaskManager.shared.exportProject(project: store.loadProject(byID: store.currentProjectID)!)
+                    Task {
+                        do {
+                            try await CLTaskManager.shared.exportProject(project: store.loadProject(byID: store.currentProjectID)!)
+                        } catch {
+                            self.showErrorAlert = true
+                            self.error = error
+                        }
+                    }
                 } label: {
                     Text("Export Project")
                 }

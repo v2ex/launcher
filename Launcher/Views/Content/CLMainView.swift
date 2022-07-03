@@ -9,7 +9,9 @@ import SwiftUI
 
 struct CLMainView: View {
     @EnvironmentObject private var store: CLStore
-
+    @State private var showErrorAlert = false
+    @State private var error: Error?
+    
     var body: some View {
         NavigationView {
             CLSidebarView()
@@ -17,7 +19,12 @@ struct CLMainView: View {
                 .frame(minWidth: 260)
                 .fileImporter(isPresented: $store.isImportingProject, allowedContentTypes: [.json], allowsMultipleSelection: false) { result in
                     if let urls = try? result.get(), let url = urls.first {
-                        CLTaskManager.shared.importProject(fromJSONPath: url)
+                        do {
+                            try CLTaskManager.shared.importProject(fromJSONPath: url)
+                        } catch {
+                            self.showErrorAlert = true
+                            self.error = error
+                        }
                     }
                 }
 
@@ -68,6 +75,12 @@ struct CLMainView: View {
                 .alert(isPresented: $store.isAlert, content: {
                     Alert(title: Text(store.alertTitle), message: Text(store.alertMessage), dismissButton: Alert.Button.cancel(Text("OK")))
                 })
+                .alert(isPresented: $showErrorAlert) {
+                    Alert(
+                        title: Text("Error"),
+                        message: Text(self.error?.localizedDescription ?? "")
+                    )
+                }
         }
         .navigationTitle(store.loadProject(byID: store.currentProjectID)?.name ?? "CodeLauncher")
     }
