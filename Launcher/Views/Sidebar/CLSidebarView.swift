@@ -11,7 +11,6 @@ struct CLSidebarView: View {
     @Environment(\.colorScheme) private var colorScheme
     @EnvironmentObject private var store: CLStore
 
-    @State private var project: CLProject!
     @State private var showErrorAlert = false
     @State private var error: Error?
 
@@ -63,11 +62,7 @@ struct CLSidebarView: View {
                     .background(store.currentProjectID == p.id ? Color("SidebarHighlight").opacity(colorScheme == .light ? 0.8 : 0.5) : Color.clear)
                     .contentShape(Rectangle())
                     .cornerRadius(6)
-                    .onTapGesture {
-                        DispatchQueue.main.async {
-                            self.store.currentProjectID = p.id
-                        }
-                    }
+                    .overlay(CLSidebarHandlerView(project: p))
                     .contextMenu {
                         CLSidebarOptionMenuView(project: p)
                             .environmentObject(store)
@@ -81,8 +76,8 @@ struct CLSidebarView: View {
                         self.error = error
                     }
                 }
-                
-            }.alert(isPresented: $showErrorAlert) {
+            }
+            .alert(isPresented: $showErrorAlert) {
                 Alert(
                     title: Text("Error"),
                     message: Text(self.error?.localizedDescription ?? "")
