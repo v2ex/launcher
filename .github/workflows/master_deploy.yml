@@ -90,12 +90,12 @@ jobs:
 
       - name: Prepare for Release
         run: |
-          ditto -c -k --keepParent to-be-signed/CodeLauncher.app CodeLauncher.zip
+          create-dmg --volname "CodeLauncher Installer" --window-pos 400 200 --window-size 750 260 --app-drop-link 480 35 --hdiutil-quiet CodeLauncher.dmg to-be-signed
 
       - name: Release App
         uses: softprops/action-gh-release@v1
         with:
-          files: CodeLauncher.zip
+          files: CodeLauncher.dmg
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -106,14 +106,14 @@ jobs:
           secret_key: ${{ secrets.DO_SECRET_KEY }}
           space_name: ${{ secrets.DO_SPACE_NAME }}
           space_region: ${{ secrets.DO_SPACE_REGION }}
-          source: CodeLauncher.zip
+          source: CodeLauncher.dmg
           out_dir: codelauncher/${{ env.RELEASE_VERSION }}
 
       - name: Prepare for Sparkle Appcast
         env:
           WORKPLACE: ${{ github.workspace }}
         run: |
-          mkdir -p Release & cp CodeLauncher.zip Release/
+          mkdir -p Release & cp CodeLauncher.dmg Release/
           ${{ secrets.SPARKLE_GENERATE }} $WORKPLACE/Release ${{ env.RELEASE_VERSION }}
 
       - name: Upload Sparkle Appcast
