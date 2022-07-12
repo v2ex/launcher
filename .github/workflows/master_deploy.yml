@@ -90,7 +90,7 @@ jobs:
 
       - name: Prepare for Release
         run: |
-          create-dmg --volname "CodeLauncher Installer" --window-pos 400 200 --window-size 800 400 --icon-size 128 --icon "CodeLauncher.app" 240 180 --hide-extension "CodeLauncher.app" --app-drop-link 550 180 "CodeLauncher.dmg" "to-be-signed/"
+          create-dmg --volname "CodeLauncher Installer" --window-pos 400 200 --window-size 800 400 --icon-size 128 --icon "CodeLauncher.app" 240 180 --hide-extension "CodeLauncher.app" --app-drop-link 550 180 --skip-jenkins "CodeLauncher.dmg" "to-be-signed/"
 
       - name: Release App
         uses: softprops/action-gh-release@v1
