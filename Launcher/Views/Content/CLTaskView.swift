@@ -27,8 +27,12 @@ struct CLTaskView: View {
                     }
                     .frame(width: 120)
 
-                    TextField("", text: $task.executable)
-                        .textFieldStyle(ProjectTextFieldStyle())
+                    if #available(macOS 13.0, *) {
+                        TextField("", text: $task.executable)
+                            .textFieldStyle(ProjectTextFieldStyle())
+                    } else {
+                        CLTextFieldView(text: $task.executable, placeholder: "", isCommandArguments: true)
+                    }
 
                     Spacer(minLength: 10)
 
@@ -43,7 +47,9 @@ struct CLTaskView: View {
                     }
                     .fileImporter(isPresented: $isChoosingExecutablePath, allowedContentTypes: [.executable], allowsMultipleSelection: false) { result in
                         if let urls = try? result.get(), let url = urls.first {
-                            self.task.executable = url.path
+                            Task { @MainActor in
+                                self.task.executable = url.path
+                            }
                         }
                     }
                 }
@@ -56,8 +62,12 @@ struct CLTaskView: View {
                     }
                     .frame(width: 120)
 
-                    TextField(CLTaskManager.shared.currentUserHomePath().path, text: $task.directory)
-                        .textFieldStyle(ProjectTextFieldStyle())
+                    if #available(macOS 13.0, *) {
+                        TextField(CLTaskManager.shared.currentUserHomePath().path, text: $task.directory)
+                            .textFieldStyle(ProjectTextFieldStyle())
+                    } else {
+                        CLTextFieldView(text: $task.directory, placeholder: CLTaskManager.shared.currentUserHomePath().path, isCommandArguments: true)
+                    }
 
                     Spacer(minLength: 10)
 
@@ -72,7 +82,9 @@ struct CLTaskView: View {
                     }
                     .fileImporter(isPresented: $isChoosingDirectoryPath, allowedContentTypes: [.directory], allowsMultipleSelection: false) { result in
                         if let urls = try? result.get(), let url = urls.first {
-                            self.task.directory = url.path
+                            Task { @MainActor in
+                                self.task.directory = url.path
+                            }
                         }
                     }
                 }
@@ -84,8 +96,13 @@ struct CLTaskView: View {
                         Spacer()
                     }
                     .frame(width: 120)
-                    TextField("Separate by space.", text: $task.arguments)
-                        .textFieldStyle(ProjectTextFieldStyle())
+
+                    if #available(macOS 13.0, *) {
+                        TextField("Separate by space.", text: $task.arguments)
+                            .textFieldStyle(ProjectTextFieldStyle())
+                    } else {
+                        CLTextFieldView(text: $task.arguments, placeholder: "Separate by space.", isCommandArguments: true)
+                    }
                 }
 
                 HStack {

@@ -38,6 +38,7 @@
 		2AACCCD427571C5500AC12F5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2AACCCD327571C5500AC12F5 /* Assets.xcassets */; };
 		2AACCCD727571C5500AC12F5 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 2AACCCD527571C5500AC12F5 /* Main.storyboard */; };
 		2AACCCDD27571ED600AC12F5 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A64E8432746BBD800EB85C8 /* Extensions.swift */; };
+		2AC5931828878A040025191B /* CLTextFieldView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AC5931728878A040025191B /* CLTextFieldView.swift */; };
 		2ADEB32627887E6D00C622EF /* CLTaskStatusIndicatorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2ADEB32527887E6D00C622EF /* CLTaskStatusIndicatorView.swift */; };
 		2AE2903D274DFE2300619968 /* CLSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AE2903C274DFE2300619968 /* CLSettingsView.swift */; };
 		2AE2903F274E0EF000619968 /* CLSettingsGeneralView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AE2903E274E0EF000619968 /* CLSettingsGeneralView.swift */; };
@@ -167,6 +168,7 @@
 		2AACCCD627571C5500AC12F5 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		2AACCCD827571C5500AC12F5 /* Code_Launcher_Helper.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Code_Launcher_Helper.entitlements; sourceTree = "<group>"; };
 		2AACCCDC27571CC500AC12F5 /* Helper-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Helper-Info.plist"; sourceTree = "<group>"; };
+		2AC5931728878A040025191B /* CLTextFieldView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLTextFieldView.swift; sourceTree = "<group>"; };
 		2ADEB32527887E6D00C622EF /* CLTaskStatusIndicatorView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CLTaskStatusIndicatorView.swift; sourceTree = "<group>"; };
 		2AE2903C274DFE2300619968 /* CLSettingsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CLSettingsView.swift; path = launcher/Views/Settings/CLSettingsView.swift; sourceTree = SOURCE_ROOT; };
 		2AE2903E274E0EF000619968 /* CLSettingsGeneralView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CLSettingsGeneralView.swift; path = launcher/Views/Settings/CLSettingsGeneralView.swift; sourceTree = SOURCE_ROOT; };
@@ -312,6 +314,7 @@
 			isa = PBXGroup;
 			children = (
 				2A73821E276AF17A00E7ED27 /* CLVisualEffectView.swift */,
+				2AC5931728878A040025191B /* CLTextFieldView.swift */,
 			);
 			path = Parts;
 			sourceTree = "<group>";
@@ -476,6 +479,7 @@
 				2A9C30082797C195005DD27A /* CLConfiguration.swift in Sources */,
 				2A240E63275CCA200003F816 /* CLTaskItemView.swift in Sources */,
 				2ADEB32627887E6D00C622EF /* CLTaskStatusIndicatorView.swift in Sources */,
+				2AC5931828878A040025191B /* CLTextFieldView.swift in Sources */,
 				2AE29048274E987600619968 /* CLConsoleView.swift in Sources */,
 				2A214784275081D8000272B8 /* CLTaskView.swift in Sources */,
 				2A64E80127463E6C00EB85C8 /* CLApp.swift in Sources */,
