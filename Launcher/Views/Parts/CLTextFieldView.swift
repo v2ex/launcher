@@ -61,17 +61,18 @@ private struct CLTextFieldBaseView: NSViewRepresentable {
         textField.placeholderString = placeholder
         textField.font = isCommandArguments ? .monospacedSystemFont(ofSize: 13, weight: .regular) : .systemFont(ofSize: 13)
         textField.wantsLayer = true
+        textField.isBordered = true
+        textField.drawsBackground = false
+        textField.bezelStyle = .roundedBezel
         if colorScheme == .light {
-            textField.layer?.backgroundColor = NSColor.textBackgroundColor.cgColor
-            textField.layer?.borderColor = NSColor.placeholderTextColor.cgColor
-            textField.layer?.shadowColor = NSColor.controlBackgroundColor.cgColor
+            textField.backgroundColor = NSColor.textBackgroundColor
+            textField.layer?.borderColor = NSColor.lightGray.cgColor
         } else {
-            textField.layer?.backgroundColor = NSColor.controlTextColor.cgColor
-            textField.layer?.borderColor = NSColor.controlTextColor.cgColor
-            textField.layer?.shadowColor = NSColor.clear.cgColor
+            textField.backgroundColor = NSColor.textBackgroundColor
+            textField.layer?.borderColor = NSColor.darkGray.cgColor
         }
         textField.layer?.borderWidth = 1
-        textField.layer?.cornerRadius = 6
+        textField.layer?.cornerRadius = 5
         return textField
     }
 
