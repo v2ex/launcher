@@ -32,8 +32,13 @@ struct CLProjectView: View {
                                 Spacer()
                             }
                             .frame(width: 82)
-                            TextField("", text: $store.editingProject.name)
-                                .textFieldStyle(ProjectTextFieldStyle(isCommandArguments: false))
+
+                            if #available(macOS 13.0, *) {
+                                TextField("Project Name", text: $store.editingProject.name)
+                                    .textFieldStyle(ProjectTextFieldStyle(isCommandArguments: false))
+                            } else {
+                                CLTextFieldView(text: $store.editingProject.name, placeholder: "Project Name")
+                            }
                         }
 
                         HStack {
@@ -42,8 +47,13 @@ struct CLProjectView: View {
                                 Spacer()
                             }
                             .frame(width: 82)
-                            TextField("", text: $store.editingProject.description)
-                                .textFieldStyle(ProjectTextFieldStyle(isCommandArguments: false))
+
+                            if #available(macOS 13.0, *) {
+                                TextField("Project Description", text: $store.editingProject.description)
+                                    .textFieldStyle(ProjectTextFieldStyle(isCommandArguments: false))
+                            } else {
+                                CLTextFieldView(text: $store.editingProject.description, placeholder: "Project Description")
+                            }
                         }
                     }
 
