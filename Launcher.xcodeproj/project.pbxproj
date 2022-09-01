@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1984D17228C07B030091131A /* Updater.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1984D17128C07B030091131A /* Updater.swift */; };
 		2A11EB4A275A507F007E45FF /* CLSidebarOptionMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A11EB49275A507F007E45FF /* CLSidebarOptionMenuView.swift */; };
 		2A11EB4C275A5F88007E45FF /* CLSettingsAdvancedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A11EB4B275A5F88007E45FF /* CLSettingsAdvancedView.swift */; };
 		2A1E70D82757273800FACCC6 /* CodeLauncher Helper.app in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2AACCCCD27571C5400AC12F5 /* CodeLauncher Helper.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -135,6 +136,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		1984D17128C07B030091131A /* Updater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Updater.swift; sourceTree = "<group>"; };
 		2A11EB49275A507F007E45FF /* CLSidebarOptionMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLSidebarOptionMenuView.swift; sourceTree = "<group>"; };
 		2A11EB4B275A5F88007E45FF /* CLSettingsAdvancedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLSettingsAdvancedView.swift; sourceTree = "<group>"; };
 		2A214783275081D8000272B8 /* CLTaskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLTaskView.swift; sourceTree = "<group>"; };
@@ -259,6 +261,7 @@
 				2A64E82E274687FC00EB85C8 /* CLTaskManager.swift */,
 				D7CBBA2E279D9D9800AC665C /* CLDefaults.swift */,
 				2A64E8432746BBD800EB85C8 /* Extensions.swift */,
+				1984D17128C07B030091131A /* Updater.swift */,
 			);
 			path = Helper;
 			sourceTree = "<group>";
@@ -486,6 +489,7 @@
 				2A64E83427468D2400EB85C8 /* CLTask.swift in Sources */,
 				2A64E82F274687FC00EB85C8 /* CLTaskManager.swift in Sources */,
 				2A64E8382746904900EB85C8 /* CLContentView.swift in Sources */,
+				1984D17228C07B030091131A /* Updater.swift in Sources */,
 				2A11EB4C275A5F88007E45FF /* CLSettingsAdvancedView.swift in Sources */,
 				2A6057B32748B838001A68C7 /* CLCommand.swift in Sources */,
 				2A64E8312746881700EB85C8 /* CLStore.swift in Sources */,
@@ -871,7 +875,7 @@
 			repositoryURL = "https://github.com/sparkle-project/Sparkle";
 			requirement = {
 				kind = exactVersion;
-				version = 1.27.1;
+				version = 2.2.2;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

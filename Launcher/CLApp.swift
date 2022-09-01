@@ -5,7 +5,6 @@
 //  Created by Kai on 11/18/21.
 //
 
-import Sparkle
 import SwiftUI
 import UserNotifications
 
@@ -14,7 +13,12 @@ struct CLApp: App {
     @StateObject var store = CLStore.shared
     @State private var showErrorAlert = false
     @State private var error: Error?
-
+    @StateObject var updater: LauncherUpdater
+    
+    init() {
+        _updater = StateObject(wrappedValue: LauncherUpdater.shared)
+    }
+    
     var body: some Scene {
         WindowGroup {
             CLMainView()
@@ -91,7 +95,7 @@ struct CLApp: App {
             }
             CommandGroup(after: .appInfo) {
                 Button {
-                    SUUpdater.shared().checkForUpdates(NSButton())
+                    updater.checkForUpdates()
                 } label: {
                     Text("Check for Updates")
                 }
@@ -121,7 +125,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
 
     func applicationDidFinishLaunching(_: Notification) {
         CLTaskManager.shared.setup()
-        SUUpdater.shared().checkForUpdatesInBackground()
+        LauncherUpdater.shared.checkForUpdatesInBackground()
 
         UNUserNotificationCenter.current().delegate = self
         let dismissAction = UNNotificationAction(identifier: String.taskCompleteActionDismissIdentifier, title: "Dismiss", options: [.destructive])
