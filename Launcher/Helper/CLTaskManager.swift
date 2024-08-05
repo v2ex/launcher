@@ -374,7 +374,7 @@ class CLTaskManager: NSObject {
                     }
                 } else if output == nil {
                     RunLoop.main.perform {
-                        if CLStore.shared.taskProcesses[task.id.uuidString] != nil {
+                        if CLStore.shared.taskProcesses[task.id.uuidString] == nil {
                             CLStore.shared.taskProcesses[task.id.uuidString] = process
                             DispatchQueue.global(qos: .background).async {
                                 self.sendNotification(forTask: task, started: true)
