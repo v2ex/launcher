@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import AppKit
 
 // TODO: Functions for Color
 // Here we need more functions to return Color based on the setting value of Appearance
@@ -57,6 +58,49 @@ private struct CLTaskIndexedOutputView: View {
 
     @AppStorage(CLDefaults.settingsAppearanceKey) var appearance: Appearance = .dark
 
+    var body: some View {
+        HStack {
+            if #available(macOS 12.0, *) {
+                Text(createAttributedString(from: output.output.content))
+                    .textSelection(.enabled)
+                    .font(.system(size: 13, weight: .regular, design: .monospaced))
+                    .foregroundColor(foregroundColor(for: appearance))
+                    .tint(Color.cyan)
+            } else {
+                Text(output.output.content)
+                    .font(.system(size: 13, weight: .regular, design: .monospaced))
+                    .foregroundColor(foregroundColor(for: appearance))
+            }
+            Spacer()
+        }
+        .padding(.horizontal, 8)
+        .id(output.id)
+        .background(backgroundColor(for: appearance))
+    }
+
+    // Using NSDataDetector to manually identify links offers the best compatibility
+    @available(macOS 12.0, *)
+    private func createAttributedString(from content: String) -> AttributedString {
+        var str = AttributedString(content)
+
+        // Create a link detector
+        let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue)
+        let range = NSRange(content.startIndex..<content.endIndex, in: content)
+
+        // Find all matches
+        detector?.enumerateMatches(in: content, options: [], range: range) { match, _, _ in
+            guard let match = match, let url = match.url else { return }
+
+            // Convert the matched NSRange to a Range for AttributedString
+            if let swiftRange = Range(match.range, in: str) {
+                str[swiftRange].link = url
+                // add an underline to the link
+                str[swiftRange].underlineStyle = .single
+            }
+        }
+        return str
+    }
+
     private func backgroundColor(for appearance: Appearance) -> Color {
         switch (appearance) {
         case .dark:
@@ -66,9 +110,12 @@ private struct CLTaskIndexedOutputView: View {
         case .dracula:
             return output.index % 2 == 0 ? CLColor.draculaBackgroundAlternate : CLColor.draculaBackground
         case .device:
-            return output.index % 2 == 0 ? Color("ConsoleBackgroundAlternate") : Color("ConsoleBackground")
+            // If the color is not found in Assets, fall back to the system window color.
+            let name = output.index % 2 == 0 ? "ConsoleBackgroundAlternate" : "ConsoleBackground"
+            return Color(name, bundle: nil) != Color(white: 0, opacity: 0) ? Color(name) : Color(NSColor.windowBackgroundColor)
         case .reverse:
-            return output.index % 2 == 0 ? Color("ReverseConsoleBackgroundAlternate") : Color("ReverseConsoleBackground")
+            let name = output.index % 2 == 0 ? "ReverseConsoleBackgroundAlternate" : "ReverseConsoleBackground"
+            return Color(name, bundle: nil) != Color(white: 0, opacity: 0) ? Color(name) : Color(NSColor.textColor).opacity(0.1)
         }
     }
 
@@ -81,29 +128,12 @@ private struct CLTaskIndexedOutputView: View {
         case .dracula:
             return output.index % 2 == 0 ? CLColor.draculaForegroundAlternate : CLColor.draculaForeground
         case .device:
-            return output.index % 2 == 0 ? Color("ConsoleForegroundAlternate") : Color("ConsoleForeground")
+            let name = output.index % 2 == 0 ? "ConsoleForegroundAlternate" : "ConsoleForeground"
+            return Color(name, bundle: nil) != Color(white: 0, opacity: 0) ? Color(name) : Color(NSColor.labelColor)
         case .reverse:
-            return output.index % 2 == 0 ? Color("ReverseConsoleForegroundAlternate") : Color("ReverseConsoleForeground")
+            let name = output.index % 2 == 0 ? "ReverseConsoleForegroundAlternate" : "ReverseConsoleForeground"
+            return Color(name, bundle: nil) != Color(white: 0, opacity: 0) ? Color(name) : Color(NSColor.windowBackgroundColor)
         }
-    }
-
-    var body: some View {
-        HStack {
-            if #available(macOS 12.0, *) {
-                Text(output.output.content)
-                    .textSelection(.enabled)
-                    .font(.system(size: 13, weight: .regular, design: .monospaced))
-                    .foregroundColor(foregroundColor(for: appearance))
-            } else {
-                Text(output.output.content)
-                    .font(.system(size: 13, weight: .regular, design: .monospaced))
-                    .foregroundColor(foregroundColor(for: appearance))
-            }
-            Spacer()
-        }
-        .padding(.horizontal, 8)
-        .id(output.id)
-        .background(backgroundColor(for: appearance))
     }
 }
 
@@ -133,9 +163,9 @@ struct CLConsoleView: View {
         case .dracula:
             return CLColor.draculaBackgroundAlternate
         case .device:
-            return Color("ConsoleBackgroundAlternate")
+            return Color("ConsoleBackgroundAlternate", bundle: nil) != Color(white: 0, opacity: 0) ? Color("ConsoleBackgroundAlternate") : Color(NSColor.windowBackgroundColor)
         case .reverse:
-            return Color("ReverseConsoleBackgroundAlternate")
+            return Color("ReverseConsoleBackgroundAlternate", bundle: nil) != Color(white: 0, opacity: 0) ? Color("ReverseConsoleBackgroundAlternate") : Color(NSColor.textColor).opacity(0.1)
         }
     }
 
@@ -143,7 +173,7 @@ struct CLConsoleView: View {
         VStack(spacing: 0) {
             ScrollViewReader { proxy in
                 ScrollView {
-                    LazyVStack {
+                    LazyVStack(spacing: 0) {
                         ForEach(outputsWithIndex(outputs: viewModel.projectOutputs.filter { t in
                             if t.projectID == store.currentProjectID {
                                 if let taskID = taskID {
